@@ -1,0 +1,195 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access: string;
+  refresh: string;
+}
+
+export interface TokenVerifyResponse {
+  code: string;
+  detail: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+
+  private readonly apiUrl = 'http://localhost:8000/api';
+  private readonly tokenKey = 'access_token';
+  private readonly refreshTokenKey = 'refresh_token';
+
+  private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
+  readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+
+  /**
+   * Realiza login do usuário
+   */
+  login(username: string, password: string): Observable<LoginResponse> {
+    const body: LoginRequest = { username, password };
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/token/`, body, { headers }).pipe(
+      tap((response) => {
+        this.setTokens(response.access, response.refresh);
+        this.isAuthenticatedSubject.next(true);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * Realiza logout do usuário
+   */
+  logout(): void {
+    this.clearTokens();
+    this.isAuthenticatedSubject.next(false);
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Obtém o token de acesso atual
+   */
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  /**
+   * Obtém o refresh token
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.refreshTokenKey);
+  }
+
+  /**
+   * Verifica se o usuário está autenticado
+   */
+  isAuthenticated(): boolean {
+    return this.isAuthenticatedSubject.value;
+  }
+
+  /**
+   * Verifica se o token é válido
+   */
+  verifyToken(): Observable<TokenVerifyResponse> {
+    const token = this.getToken();
+    if (!token) {
+      return throwError(() => new Error('No token available'));
+    }
+
+    const body = { token };
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    return this.http.post<TokenVerifyResponse>(`${this.apiUrl}/token/verify/`, body, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.logout();
+        }
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * Atualiza o token de acesso usando o refresh token
+   */
+  refreshAccessToken(): Observable<LoginResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    const body = { refresh: refreshToken };
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/token/refresh/`, body, { headers }).pipe(
+      tap((response) => {
+        this.setTokens(response.access, refreshToken);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.logout();
+        }
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * Obtém headers HTTP com autenticação
+   */
+  getAuthHeaders(): HttpHeaders {
+    const token = this.getToken();
+    if (!token) {
+      return new HttpHeaders();
+    }
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+  private setTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem(this.tokenKey, accessToken);
+    localStorage.setItem(this.refreshTokenKey, refreshToken);
+  }
+
+  private clearTokens(): void {
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
+  }
+
+  private hasValidToken(): boolean {
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    // Verifica se o token não expirou (decodificação básica)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000; // Converte para milliseconds
+      return Date.now() < exp;
+    } catch {
+      return false;
+    }
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Ocorreu um erro desconhecido';
+
+    if (error.error instanceof ErrorEvent) {
+      // Erro do lado do cliente
+      errorMessage = `Erro: ${error.error.message}`;
+    } else {
+      // Erro do lado do servidor
+      if (error.status === 401) {
+        errorMessage = 'Credenciais inválidas';
+      } else if (error.status === 0) {
+        errorMessage = 'Não foi possível conectar ao servidor';
+      } else if (error.error?.detail) {
+        errorMessage = error.error.detail;
+      } else if (error.error?.non_field_errors) {
+        errorMessage = error.error.non_field_errors[0];
+      } else {
+        errorMessage = `Erro ${error.status}: ${error.message}`;
+      }
+    }
+
+    return throwError(() => new Error(errorMessage));
+  }
+}
+

@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { authRedirectGuard } from './core/guards/auth-redirect.guard';
 
 export const routes: Routes = [
   {
@@ -7,11 +9,27 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    path: 'login',
+    canActivate: [authRedirectGuard],
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
   },
   {
-    path: 'devices',
-    loadChildren: () => import('./pages/devices/devices.routes').then(m => m.routes)
+    path: '',
+    loadComponent: () => import('./layout/layout.component').then(m => m.LayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'devices',
+        loadChildren: () => import('./pages/devices/devices.routes').then(m => m.routes)
+      }
+    ]
+  },
+  {
+    path: '**',
+    redirectTo: '/dashboard'
   }
 ];
