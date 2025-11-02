@@ -7,12 +7,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework import routers
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
+from devices.views import DeviceViewSet
 from typing import List
+
+# DRF Router configuration
+router = routers.DefaultRouter()
+router.register(r'devices', DeviceViewSet, basename='device')
 
 urlpatterns: List = [
     path('admin/', admin.site.urls),
@@ -21,6 +27,9 @@ urlpatterns: List = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # API endpoints
+    path('api/', include(router.urls)),
 ]
 
 # Servir arquivos estáticos e media em desenvolvimento
