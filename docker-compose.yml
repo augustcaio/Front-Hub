@@ -26,7 +26,7 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+             daphne config.asgi:application --bind 0.0.0.0 --port 8000"
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
@@ -40,6 +40,20 @@ services:
         condition: service_healthy
     networks:
       - backend_network
+      - frontend_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: front_hub_frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_network
     restart: unless-stopped
 
 volumes:
@@ -49,5 +63,7 @@ volumes:
 
 networks:
   backend_network:
+    driver: bridge
+  frontend_network:
     driver: bridge
 

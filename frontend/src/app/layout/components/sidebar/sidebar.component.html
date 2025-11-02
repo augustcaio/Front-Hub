@@ -1,0 +1,22 @@
+<p-sidebar
+  [(visible)]="sidebarVisible"
+  position="left"
+  [modal]="true"
+  [dismissible]="true"
+  styleClass="sidebar-custom"
+>
+  <ng-template pTemplate="header">
+    <div class="sidebar-header">
+      <h3>Front-Hub</h3>
+    </div>
+  </ng-template>
+
+  <p-menu [model]="menuItems" [style]="{ width: '100%', border: 'none' }"></p-menu>
+
+  <ng-template pTemplate="footer">
+    <div class="sidebar-footer">
+      <small>v1.0.0</small>
+    </div>
+  </ng-template>
+</p-sidebar>
+

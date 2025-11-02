@@ -1,0 +1,34 @@
+<div class="header-container">
+  <div class="header-content">
+    <!-- Mobile Menu Button -->
+    <p-button
+      icon="pi pi-bars"
+      [styleClass]="'p-button-text p-button-rounded'"
+      [style]="{ marginRight: '1rem' }"
+      (onClick)="onMenuClick()"
+      class="mobile-menu-btn"
+      aria-label="Menu"
+    ></p-button>
+
+    <!-- Logo/Title -->
+    <a routerLink="/" class="logo-link">
+      <h1 class="logo-text">Front-Hub</h1>
+    </a>
+
+    <!-- Desktop Menu -->
+    <p-menubar
+      [model]="menuItems"
+      [style]="{ 
+        flex: '1 1 auto', 
+        marginLeft: '2rem',
+        border: 'none',
+        background: 'transparent'
+      }"
+      class="desktop-menu"
+    ></p-menubar>
+
+    <!-- Spacer for alignment -->
+    <div class="header-spacer"></div>
+  </div>
+</div>
+
