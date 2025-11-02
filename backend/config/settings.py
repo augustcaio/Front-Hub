@@ -41,6 +41,9 @@ INSTALLED_APPS: List[str] = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # Third-party apps (Channels deve vir antes das apps locais)
+    'channels',
+    
     # Local apps
     'accounts',
     'devices',
@@ -81,6 +84,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION: str = 'config.wsgi.application'
+ASGI_APPLICATION: str = 'config.asgi.application'
 
 
 # Database
@@ -229,3 +233,24 @@ CORS_ALLOW_HEADERS: List[str] = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+
+# Django Channels Configuration
+# https://channels.readthedocs.io/en/stable/topics/channel_layers.html
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': config(
+            'CHANNEL_LAYER_BACKEND',
+            default='channels_redis.core.RedisChannelLayer'
+        ),
+        'CONFIG': {
+            "hosts": [
+                (
+                    config('REDIS_HOST', default='localhost'),
+                    config('REDIS_PORT', default=6379, cast=int)
+                )
+            ],
+        },
+    },
+}

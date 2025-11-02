@@ -5,4 +5,7 @@ psycopg2-binary>=2.9.0
 gunicorn>=21.0.0
 python-decouple>=3.8
 django-cors-headers>=4.0.0
+channels>=4.0.0
+channels-redis>=4.2.0
+daphne>=4.0.0
 
