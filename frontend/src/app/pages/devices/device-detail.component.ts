@@ -10,6 +10,10 @@ import { ChartModule } from 'primeng/chart';
 import { Subscription } from 'rxjs';
 import { DeviceService, Device, Measurement, AggregatedStatistics } from '../../core/services/device.service';
 import { WebSocketService, MeasurementUpdate } from '../../core/services/websocket.service';
+import { ChartData, ChartOptions, ChartTooltipContext } from '../../core/types/chart.types';
+import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
+import { formatDateTimeFull, formatTime } from '../../core/utils/date.utils';
+import { CHART_CONFIG, WS_CONNECTION_STATUS, WsConnectionStatus } from '../../core/utils/constants';
 
 @Component({
   selector: 'app-device-detail',
@@ -40,7 +44,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   deviceId: number | null = null;
   
   wsConnected = false;
-  wsStatus: 'connecting' | 'connected' | 'disconnected' | 'error' = 'disconnected';
+  wsStatus: WsConnectionStatus = WS_CONNECTION_STATUS.DISCONNECTED;
   recentMeasurements: Array<{
     id: number;
     device: number;
@@ -53,8 +57,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   private wsStatusSubscription?: Subscription;
 
   // Gráfico de precisão
-  chartData: any = null;
-  chartOptions: any;
+  chartData: ChartData | null = null;
+  chartOptions: ChartOptions | null = null;
   chartLoading = false;
   aggregatedStats: AggregatedStatistics | null = null;
   chartUnit = '';
@@ -150,14 +154,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     }
 
     // Preparar labels (timestamps formatados)
-    const labels = sortedMeasurements.map(m => {
-      const date = new Date(m.timestamp);
-      return date.toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        second: '2-digit'
-      });
-    });
+    const labels = sortedMeasurements.map(m => formatTime(m.timestamp));
 
     // Preparar valores (valores numéricos)
     const values = sortedMeasurements.map(m => parseFloat(m.value));
@@ -169,8 +166,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         {
           label: 'Precisão',
           data: values,
-          borderColor: '#3B82F6', // Blue
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: CHART_CONFIG.COLORS.PRIMARY,
+          backgroundColor: CHART_CONFIG.COLORS.PRIMARY_ALPHA,
           tension: 0.4,
           fill: true
         }
@@ -196,7 +193,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         },
         tooltip: {
           callbacks: {
-            label: (context: any) => {
+            label: (context: ChartTooltipContext) => {
               return `Valor: ${context.parsed.y} ${this.chartUnit}`;
             }
           }
@@ -216,7 +213,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         y: {
           ticks: {
             color: textColorSecondary,
-            callback: (value: any) => {
+            callback: (value: number | string) => {
               return `${value} ${this.chartUnit}`;
             }
           },
@@ -243,9 +240,9 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
       console.log('📊 Nova medição recebida:', update.measurement);
       this.recentMeasurements.unshift(update.measurement);
       
-      // Manter apenas as últimas 10 medições
-      if (this.recentMeasurements.length > 10) {
-        this.recentMeasurements = this.recentMeasurements.slice(0, 10);
+      // Manter apenas as últimas medições conforme configurado
+      if (this.recentMeasurements.length > CHART_CONFIG.RECENT_MEASUREMENTS_LIMIT) {
+        this.recentMeasurements = this.recentMeasurements.slice(0, CHART_CONFIG.RECENT_MEASUREMENTS_LIMIT);
       }
 
       // Atualizar gráfico com nova medição (tarefa 4.3)
@@ -272,35 +269,15 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   }
 
   getStatusSeverity(status: string): 'success' | 'danger' | 'warning' | 'info' {
-    const severityMap: { [key: string]: 'success' | 'danger' | 'warning' | 'info' } = {
-      active: 'success',
-      inactive: 'info',
-      maintenance: 'warning',
-      error: 'danger'
-    };
-    return severityMap[status] || 'info';
+    return getDeviceStatusSeverity(status);
   }
 
   getStatusLabel(status: string): string {
-    const labelMap: { [key: string]: string } = {
-      active: 'Ativo',
-      inactive: 'Inativo',
-      maintenance: 'Manutenção',
-      error: 'Erro'
-    };
-    return labelMap[status] || status;
+    return getDeviceStatusLabel(status);
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    return formatDateTimeFull(dateString);
   }
 
   goBack(): void {
@@ -311,7 +288,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     this.loadDevice();
   }
 
-  updateChartWithNewMeasurement(measurement: any): void {
+  updateChartWithNewMeasurement(measurement: MeasurementUpdate['measurement']): void {
     // Se o gráfico ainda não foi inicializado, inicializar com esta medição
     if (!this.chartData || !this.chartData.datasets || this.chartData.datasets.length === 0) {
       // Inicializar gráfico com a primeira medição recebida via WebSocket
@@ -338,8 +315,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
-    // Manter apenas os últimos 100 pontos
-    if (this.chartMeasurements.length > 100) {
+    // Manter apenas os últimos pontos conforme configurado
+    if (this.chartMeasurements.length > CHART_CONFIG.MAX_DATA_POINTS) {
       this.chartMeasurements.shift();
     }
 
@@ -349,14 +326,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     }
 
     // Preparar novos dados do gráfico a partir da lista atualizada
-    const labels = this.chartMeasurements.map(m => {
-      const date = new Date(m.timestamp);
-      return date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-    });
+    const labels = this.chartMeasurements.map(m => formatTime(m.timestamp));
 
     const values = this.chartMeasurements.map(m => parseFloat(m.value));
 
@@ -367,8 +337,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         {
           label: 'Precisão',
           data: values,
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: CHART_CONFIG.COLORS.PRIMARY,
+          backgroundColor: CHART_CONFIG.COLORS.PRIMARY_ALPHA,
           tension: 0.4,
           fill: true
         }
@@ -382,7 +352,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private initializeChartWithMeasurement(measurement: any): void {
+  private initializeChartWithMeasurement(measurement: MeasurementUpdate['measurement']): void {
     const newMeasurement: Measurement = {
       id: measurement.id,
       device: measurement.device,
@@ -395,12 +365,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     this.chartMeasurements = [newMeasurement];
     this.chartUnit = measurement.unit || '';
 
-    const date = new Date(measurement.timestamp);
-    const label = date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    const label = formatTime(measurement.timestamp);
 
     this.chartData = {
       labels: [label],

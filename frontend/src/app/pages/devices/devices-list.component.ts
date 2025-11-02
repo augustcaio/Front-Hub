@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -12,6 +18,8 @@ import { PaginatorModule } from 'primeng/paginator';
 import { CardModule } from 'primeng/card';
 import { ToolbarModule } from 'primeng/toolbar';
 import { DeviceService, Device, DeviceListResponse } from '../../core/services/device.service';
+import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
+import { formatDateTime } from '../../core/utils/date.utils';
 
 interface StatusOption {
   label: string;
@@ -33,10 +41,10 @@ interface StatusOption {
     DropdownModule,
     PaginatorModule,
     CardModule,
-    ToolbarModule
+    ToolbarModule,
   ],
   templateUrl: './devices-list.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevicesListComponent implements OnInit {
   private readonly deviceService = inject(DeviceService);
@@ -48,7 +56,7 @@ export class DevicesListComponent implements OnInit {
   totalRecords = 0;
   first = 0;
   rows = 20;
-  
+
   searchText = '';
   selectedStatus: string | null = null;
 
@@ -57,7 +65,7 @@ export class DevicesListComponent implements OnInit {
     { label: 'Ativo', value: 'active' },
     { label: 'Inativo', value: 'inactive' },
     { label: 'Manutenção', value: 'maintenance' },
-    { label: 'Erro', value: 'error' }
+    { label: 'Erro', value: 'error' },
   ];
 
   ngOnInit(): void {
@@ -76,17 +84,18 @@ export class DevicesListComponent implements OnInit {
         // Filtrar por status
         if (this.selectedStatus) {
           filteredDevices = filteredDevices.filter(
-            device => device.status === this.selectedStatus
+            (device) => device.status === this.selectedStatus
           );
         }
 
         // Filtrar por busca
         if (this.searchText.trim()) {
           const searchLower = this.searchText.toLowerCase().trim();
-          filteredDevices = filteredDevices.filter(device =>
-            device.name.toLowerCase().includes(searchLower) ||
-            device.public_id.toLowerCase().includes(searchLower) ||
-            (device.description && device.description.toLowerCase().includes(searchLower))
+          filteredDevices = filteredDevices.filter(
+            (device) =>
+              device.name.toLowerCase().includes(searchLower) ||
+              device.public_id.toLowerCase().includes(searchLower) ||
+              (device.description && device.description.toLowerCase().includes(searchLower))
           );
         }
 
@@ -99,7 +108,7 @@ export class DevicesListComponent implements OnInit {
         this.error = error.message || 'Erro ao carregar dispositivos';
         this.loading = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
@@ -118,7 +127,7 @@ export class DevicesListComponent implements OnInit {
     this.onSearch();
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: { first: number; rows: number }): void {
     this.first = event.first;
     this.rows = event.rows;
     // Paginação local já está implementada via filtros
@@ -126,34 +135,15 @@ export class DevicesListComponent implements OnInit {
   }
 
   getStatusSeverity(status: string): 'success' | 'danger' | 'warning' | 'info' {
-    const severityMap: { [key: string]: 'success' | 'danger' | 'warning' | 'info' } = {
-      active: 'success',
-      inactive: 'info',
-      maintenance: 'warning',
-      error: 'danger'
-    };
-    return severityMap[status] || 'info';
+    return getDeviceStatusSeverity(status);
   }
 
   getStatusLabel(status: string): string {
-    const labelMap: { [key: string]: string } = {
-      active: 'Ativo',
-      inactive: 'Inativo',
-      maintenance: 'Manutenção',
-      error: 'Erro'
-    };
-    return labelMap[status] || status;
+    return getDeviceStatusLabel(status);
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatDateTime(dateString);
   }
 
   refresh(): void {

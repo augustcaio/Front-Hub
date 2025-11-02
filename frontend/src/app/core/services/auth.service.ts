@@ -27,6 +27,8 @@ export class AuthService {
   private readonly router = inject(Router);
 
   private readonly apiUrl = 'http://localhost:8000/api';
+  
+  // Storage keys - using constants for better maintainability
   private readonly tokenKey = 'access_token';
   private readonly refreshTokenKey = 'refresh_token';
 

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { AuthService } from './auth.service';
+import { WS_CONNECTION_STATUS, WsConnectionStatus } from '../utils/constants';
 
 export interface WebSocketMessage {
   type: string;
@@ -34,11 +35,11 @@ export class WebSocketService {
   private readonly wsUrl = 'ws://localhost:8000';
   
   private ws: WebSocket | null = null;
-  private connectionStatus$ = new BehaviorSubject<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  private connectionStatus$ = new BehaviorSubject<WsConnectionStatus>(WS_CONNECTION_STATUS.DISCONNECTED);
   private messages$ = new Subject<WebSocketMessage>();
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
+  private readonly maxReconnectAttempts = 5;
+  private readonly reconnectDelay = 3000;
 
   /**
    * Conecta ao WebSocket de um dispositivo específico
@@ -49,7 +50,7 @@ export class WebSocketService {
       return;
     }
 
-    this.connectionStatus$.next('connecting');
+    this.connectionStatus$.next(WS_CONNECTION_STATUS.CONNECTING);
     
     try {
       const url = `${this.wsUrl}/ws/device/${devicePublicId}/`;
@@ -57,7 +58,7 @@ export class WebSocketService {
 
       this.ws.onopen = () => {
         console.log('✅ WebSocket conectado para dispositivo:', devicePublicId);
-        this.connectionStatus$.next('connected');
+        this.connectionStatus$.next(WS_CONNECTION_STATUS.CONNECTED);
         this.reconnectAttempts = 0;
       };
 
@@ -71,18 +72,19 @@ export class WebSocketService {
         }
       };
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = (error: Event) => {
         console.error('❌ Erro no WebSocket:', error);
-        this.connectionStatus$.next('error');
+        this.connectionStatus$.next(WS_CONNECTION_STATUS.ERROR);
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = (event: CloseEvent) => {
         console.log('🔌 WebSocket desconectado:', event.code, event.reason);
-        this.connectionStatus$.next('disconnected');
+        this.connectionStatus$.next(WS_CONNECTION_STATUS.DISCONNECTED);
         this.ws = null;
 
         // Tentar reconectar se não foi um fechamento intencional
-        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+        const WS_CLOSE_NORMAL = 1000;
+        if (event.code !== WS_CLOSE_NORMAL && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           console.log(`🔄 Tentando reconectar (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
           setTimeout(() => {
@@ -92,7 +94,7 @@ export class WebSocketService {
       };
     } catch (error) {
       console.error('❌ Erro ao criar conexão WebSocket:', error);
-      this.connectionStatus$.next('error');
+      this.connectionStatus$.next(WS_CONNECTION_STATUS.ERROR);
     }
   }
 
@@ -101,9 +103,10 @@ export class WebSocketService {
    */
   disconnect(): void {
     if (this.ws) {
-      this.ws.close(1000, 'Intentional disconnect');
+      const WS_CLOSE_NORMAL = 1000;
+      this.ws.close(WS_CLOSE_NORMAL, 'Intentional disconnect');
       this.ws = null;
-      this.connectionStatus$.next('disconnected');
+      this.connectionStatus$.next(WS_CONNECTION_STATUS.DISCONNECTED);
       this.reconnectAttempts = 0;
     }
   }
@@ -122,7 +125,7 @@ export class WebSocketService {
   /**
    * Observable para status da conexão
    */
-  getConnectionStatus(): Observable<'connecting' | 'connected' | 'disconnected' | 'error'> {
+  getConnectionStatus(): Observable<WsConnectionStatus> {
     return this.connectionStatus$.asObservable();
   }
 
@@ -140,15 +143,36 @@ export class WebSocketService {
     return new Observable(observer => {
       const subscription = this.messages$.subscribe(message => {
         if (message.type === 'measurement_update' && 'measurement' in message) {
-          const update: MeasurementUpdate = {
-            type: 'measurement_update',
-            measurement: message['measurement'] as MeasurementUpdate['measurement']
-          };
-          observer.next(update);
+          const measurementData = message['measurement'];
+          if (this.isValidMeasurementData(measurementData)) {
+            const update: MeasurementUpdate = {
+              type: 'measurement_update',
+              measurement: measurementData
+            };
+            observer.next(update);
+          }
         }
       });
       return () => subscription.unsubscribe();
     });
+  }
+
+  /**
+   * Type guard para validar dados de medição
+   */
+  private isValidMeasurementData(data: unknown): data is MeasurementUpdate['measurement'] {
+    if (typeof data !== 'object' || data === null) {
+      return false;
+    }
+    const measurement = data as Record<string, unknown>;
+    return (
+      typeof measurement['id'] === 'number' &&
+      typeof measurement['device'] === 'number' &&
+      typeof measurement['metric'] === 'string' &&
+      typeof measurement['value'] === 'string' &&
+      typeof measurement['unit'] === 'string' &&
+      typeof measurement['timestamp'] === 'string'
+    );
   }
 
   /**

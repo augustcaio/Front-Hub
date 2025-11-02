@@ -68,13 +68,17 @@ export class DeviceService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
   private readonly apiUrl = 'http://localhost:8000/api';
+  
+  // API endpoints
+  private readonly devicesEndpoint = `${this.apiUrl}/devices/`;
+  private readonly alertsEndpoint = `${this.apiUrl}/alerts`;
 
   /**
    * Lista todos os dispositivos
    */
   getDevices(): Observable<DeviceListResponse> {
     const headers = this.getAuthHeaders();
-    return this.http.get<DeviceListResponse>(`${this.apiUrl}/devices/`, { headers }).pipe(
+    return this.http.get<DeviceListResponse>(this.devicesEndpoint, { headers }).pipe(
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
@@ -84,7 +88,7 @@ export class DeviceService {
    */
   getDevice(id: number): Observable<Device> {
     const headers = this.getAuthHeaders();
-    return this.http.get<Device>(`${this.apiUrl}/devices/${id}/`, { headers }).pipe(
+    return this.http.get<Device>(`${this.devicesEndpoint}${id}/`, { headers }).pipe(
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
@@ -122,7 +126,7 @@ export class DeviceService {
   getAggregatedData(deviceId: number): Observable<AggregatedDataResponse> {
     const headers = this.getAuthHeaders();
     return this.http
-      .get<AggregatedDataResponse>(`${this.apiUrl}/devices/${deviceId}/aggregated-data/`, { headers })
+      .get<AggregatedDataResponse>(`${this.devicesEndpoint}${deviceId}/aggregated-data/`, { headers })
       .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 
@@ -133,7 +137,7 @@ export class DeviceService {
     const headers = this.getAuthHeaders();
     const params = unresolvedOnly ? '?unresolved_only=true' : '';
     return this.http
-      .get<AlertListResponse>(`${this.apiUrl}/alerts${params}`, { headers })
+      .get<AlertListResponse>(`${this.alertsEndpoint}${params}`, { headers })
       .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 

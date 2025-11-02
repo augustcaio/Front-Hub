@@ -7,14 +7,11 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { DeviceService, Device, Alert } from '../../core/services/device.service';
+import { countDevicesByStatus, DeviceStatusCount } from '../../core/utils/device.utils';
+import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
+import { getAlertSeveritySeverity, getAlertSeverityLabel, getAlertSeverityIcon } from '../../core/utils/alert.utils';
+import { formatDate as formatDateUtil, formatDateTime as formatDateTimeUtil } from '../../core/utils/date.utils';
 
-interface StatusCount {
-  active: number;
-  inactive: number;
-  maintenance: number;
-  error: number;
-  total: number;
-}
 
 @Component({
   selector: 'app-dashboard',
@@ -39,7 +36,7 @@ export class DashboardComponent implements OnInit {
   error: string | null = null;
   devices: Device[] = [];
   alerts: Alert[] = [];
-  statusCount: StatusCount = {
+  statusCount: DeviceStatusCount = {
     active: 0,
     inactive: 0,
     maintenance: 0,
@@ -80,7 +77,7 @@ export class DashboardComponent implements OnInit {
     this.deviceService.getDevices().subscribe({
       next: (response) => {
         this.devices = response.results.slice(0, 5); // Primeiros 5 para preview
-        this.countStatus(response.results);
+        this.statusCount = countDevicesByStatus(response.results);
         this.loadAlerts();
         this.loading = false;
         this.cdr.markForCheck();
@@ -107,93 +104,32 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private countStatus(devices: Device[]): void {
-    const counts: StatusCount = {
-      active: 0,
-      inactive: 0,
-      maintenance: 0,
-      error: 0,
-      total: devices.length
-    };
-
-    devices.forEach((device) => {
-      const status = device.status;
-      if (status === 'active' || status === 'inactive' || status === 'maintenance' || status === 'error') {
-        counts[status] = (counts[status] || 0) + 1;
-      }
-    });
-
-    this.statusCount = counts;
-  }
-
   getStatusSeverity(status: string): 'success' | 'danger' | 'warning' | 'info' {
-    const severityMap: { [key: string]: 'success' | 'danger' | 'warning' | 'info' } = {
-      active: 'success',
-      inactive: 'info',
-      maintenance: 'warning',
-      error: 'danger'
-    };
-    return severityMap[status] || 'info';
+    return getDeviceStatusSeverity(status);
   }
 
   getStatusLabel(status: string): string {
-    const labelMap: { [key: string]: string } = {
-      active: 'Ativo',
-      inactive: 'Inativo',
-      maintenance: 'Manutenção',
-      error: 'Erro'
-    };
-    return labelMap[status] || status;
+    return getDeviceStatusLabel(status);
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatDateUtil(dateString);
   }
 
   formatDateTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatDateTimeUtil(dateString);
   }
 
   getSeveritySeverity(severity: string): 'success' | 'info' | 'warn' | 'error' {
-    const severityMap: { [key: string]: 'success' | 'info' | 'warn' | 'error' } = {
-      low: 'info',
-      medium: 'warn',
-      high: 'error',
-      critical: 'error'
-    };
-    return severityMap[severity] || 'info';
+    return getAlertSeveritySeverity(severity);
   }
 
   getSeverityLabel(severity: string): string {
-    const labelMap: { [key: string]: string } = {
-      low: 'Baixa',
-      medium: 'Média',
-      high: 'Alta',
-      critical: 'Crítica'
-    };
-    return labelMap[severity] || severity;
+    return getAlertSeverityLabel(severity);
   }
 
   getAlertIcon(severity: string): string {
-    const iconMap: { [key: string]: string } = {
-      low: 'pi-info-circle',
-      medium: 'pi-exclamation-triangle',
-      high: 'pi-exclamation-circle',
-      critical: 'pi-times-circle'
-    };
-    return iconMap[severity] || 'pi-info-circle';
+    return getAlertSeverityIcon(severity);
   }
 
   get hasUnresolvedAlerts(): boolean {
