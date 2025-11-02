@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Device, Measurement
+from .models import Device, Measurement, Alert
 
 
 @admin.register(Device)
@@ -42,6 +42,38 @@ class MeasurementAdmin(admin.ModelAdmin):
         }),
         ('Identificador', {
             'fields': ('id',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Optimize queryset with select_related to avoid N+1 queries."""
+        qs = super().get_queryset(request)
+        return qs.select_related('device')
+
+
+@admin.register(Alert)
+class AlertAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Alert model.
+    """
+    list_display: list[str] = ['id', 'title', 'device', 'severity', 'status', 'created_at', 'resolved_at']
+    list_filter: list[str] = ['status', 'severity', 'created_at', 'device']
+    search_fields: list[str] = ['title', 'message', 'device__name', 'device__public_id']
+    readonly_fields: list[str] = ['id', 'created_at', 'updated_at']
+    date_hierarchy: str = 'created_at'
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('device', 'title', 'message')
+        }),
+        ('Status e Severidade', {
+            'fields': ('severity', 'status', 'resolved_at')
+        }),
+        ('Identificador', {
+            'fields': ('id',)
+        }),
+        ('Datas', {
+            'fields': ('created_at', 'updated_at')
         }),
     )
     

@@ -164,3 +164,110 @@ class Measurement(models.Model):
         """Return developer-friendly representation."""
         return f"<Measurement: {self.metric}={self.value}{self.unit} (device_id={self.device_id}, timestamp={self.timestamp})>"
 
+
+class Alert(models.Model):
+    """
+    Alert model representing alerts/notifications for devices.
+    
+    Fields:
+        - id: Auto-generated primary key (BigAutoField)
+        - device: Foreign key to Device model
+        - title: Alert title (CharField)
+        - message: Alert message/description (TextField)
+        - severity: Alert severity level (CharField with choices)
+        - status: Alert status - resolved or not (CharField with choices)
+        - created_at: Creation timestamp (DateTimeField)
+        - updated_at: Last update timestamp (DateTimeField)
+        - resolved_at: Resolution timestamp (DateTimeField, nullable)
+    """
+    
+    class Severity(models.TextChoices):
+        """Alert severity choices."""
+        LOW = 'low', _('Low')
+        MEDIUM = 'medium', _('Medium')
+        HIGH = 'high', _('High')
+        CRITICAL = 'critical', _('Critical')
+    
+    class Status(models.TextChoices):
+        """Alert status choices."""
+        PENDING = 'pending', _('Pending')
+        RESOLVED = 'resolved', _('Resolved')
+    
+    # Primary key
+    id = models.BigAutoField(primary_key=True)
+    
+    # Device relationship (ForeignKey with CASCADE on delete)
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        related_name='alerts',
+        db_index=True,
+        help_text=_('Device associated with this alert')
+    )
+    
+    # Alert information
+    title = models.CharField(
+        max_length=255,
+        help_text=_('Alert title')
+    )
+    
+    message = models.TextField(
+        help_text=_('Alert message/description')
+    )
+    
+    severity = models.CharField(
+        max_length=20,
+        choices=Severity.choices,
+        default=Severity.MEDIUM,
+        db_index=True,
+        help_text=_('Alert severity level')
+    )
+    
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+        help_text=_('Alert status (pending or resolved)')
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text=_('Alert creation timestamp')
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        help_text=_('Last update timestamp')
+    )
+    
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=_('Alert resolution timestamp')
+    )
+    
+    class Meta:
+        db_table: str = 'alerts'
+        verbose_name: str = _('Alert')
+        verbose_name_plural: str = _('Alerts')
+        ordering: list[str] = ['-created_at']
+        indexes: list[models.Index] = [
+            models.Index(fields=['device', 'status'], name='alert_device_status_idx'),
+            models.Index(fields=['status'], name='alert_status_idx'),
+            models.Index(fields=['severity'], name='alert_severity_idx'),
+            models.Index(fields=['device', 'created_at'], name='alert_device_created_idx'),
+            models.Index(fields=['created_at'], name='alert_created_at_idx'),
+        ]
+    
+    def __str__(self) -> str:
+        """Return string representation of Alert."""
+        return f"{self.title} - {self.device.name} ({self.status})"
+    
+    def __repr__(self) -> str:
+        """Return developer-friendly representation."""
+        return f"<Alert: {self.title} (device_id={self.device_id}, status={self.status}, severity={self.severity})>"

@@ -6,7 +6,8 @@ Following Django REST Framework best practices:
 - Clean data representation
 """
 from rest_framework import serializers
-from .models import Device, Measurement
+from django.utils import timezone
+from .models import Device, Measurement, Alert
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -116,3 +117,81 @@ class AggregatedDataSerializer(serializers.Serializer):
             'statistics': instance['statistics'],
             'count': instance['count']
         }
+
+
+class AlertSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Alert model.
+    
+    Handles data validation and representation for Alert resources.
+    """
+    
+    class Meta:
+        model = Alert
+        fields: list[str] = [
+            'id',
+            'device',
+            'title',
+            'message',
+            'severity',
+            'status',
+            'created_at',
+            'updated_at',
+            'resolved_at',
+        ]
+        read_only_fields: list[str] = [
+            'id',
+            'created_at',
+            'updated_at',
+            'resolved_at',
+        ]
+    
+    def validate_title(self, value: str) -> str:
+        """Validate alert title."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("Alert title cannot be empty.")
+        
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Alert title must be at least 3 characters long.")
+        
+        return value.strip()
+    
+    def validate_message(self, value: str) -> str:
+        """Validate alert message."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("Alert message cannot be empty.")
+        
+        return value.strip()
+    
+    def validate_severity(self, value: str) -> str:
+        """Validate alert severity."""
+        valid_severities = [choice[0] for choice in Alert.Severity.choices]
+        if value not in valid_severities:
+            raise serializers.ValidationError(
+                f"Severity must be one of: {', '.join(valid_severities)}"
+            )
+        return value
+    
+    def validate_status(self, value: str) -> str:
+        """Validate alert status."""
+        valid_statuses = [choice[0] for choice in Alert.Status.choices]
+        if value not in valid_statuses:
+            raise serializers.ValidationError(
+                f"Status must be one of: {', '.join(valid_statuses)}"
+            )
+        return value
+    
+    def update(self, instance: Alert, validated_data: dict) -> Alert:
+        """Override update to handle resolved_at timestamp."""
+        status = validated_data.get('status', instance.status)
+        
+        # Se está mudando para resolved e não tem resolved_at, definir agora
+        if status == Alert.Status.RESOLVED and instance.status != Alert.Status.RESOLVED:
+            if not instance.resolved_at:
+                validated_data['resolved_at'] = timezone.now()
+        
+        # Se está mudando de resolved para pending, limpar resolved_at
+        if status == Alert.Status.PENDING and instance.status == Alert.Status.RESOLVED:
+            validated_data['resolved_at'] = None
+        
+        return super().update(instance, validated_data)

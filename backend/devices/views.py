@@ -14,8 +14,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
 
-from .models import Device, Measurement
-from .serializers import DeviceSerializer, MeasurementSerializer
+from .models import Device, Measurement, Alert
+from .serializers import DeviceSerializer, MeasurementSerializer, AlertSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +120,47 @@ class MeasurementIngestionView(APIView):
                 f"Failed to send WebSocket update for device {device_public_id}: {str(e)}",
                 exc_info=True
             )
+
+
+class AlertViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Alert model.
+    
+    Provides full CRUD operations (Create, Read, Update, Delete).
+    Uses JWT authentication (configured globally in settings).
+    """
+    queryset = Alert.objects.all()
+    serializer_class = AlertSerializer
+    permission_classes: list = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Optimize queryset with select_related."""
+        queryset = Alert.objects.select_related('device').all()
+        
+        # Filtrar por device_id se fornecido como query parameter
+        device_id = self.request.query_params.get('device_id', None)
+        if device_id is not None:
+            try:
+                queryset = queryset.filter(device_id=int(device_id))
+            except (ValueError, TypeError):
+                pass
+        
+        # Filtrar por status se fornecido como query parameter
+        status = self.request.query_params.get('status', None)
+        if status is not None:
+            valid_statuses = [choice[0] for choice in Alert.Status.choices]
+            if status in valid_statuses:
+                queryset = queryset.filter(status=status)
+        
+        # Filtrar apenas alertas não resolvidos (para uso comum)
+        unresolved_only = self.request.query_params.get('unresolved_only', None)
+        if unresolved_only is not None and unresolved_only.lower() == 'true':
+            queryset = queryset.filter(status=Alert.Status.PENDING)
+        
+        # Order by created_at (newest first) as defined in model Meta
+        queryset = queryset.order_by('-created_at')
+        
+        return queryset
 
 
 class DeviceAggregatedDataView(APIView):

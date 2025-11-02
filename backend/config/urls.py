@@ -14,12 +14,13 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from accounts.serializers import CustomTokenObtainPairSerializer
-from devices.views import DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView
+from devices.views import DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, AlertViewSet
 from typing import List
 
 # DRF Router configuration
 router = routers.DefaultRouter()
 router.register(r'devices', DeviceViewSet, basename='device')
+router.register(r'alerts', AlertViewSet, basename='alert')
 
 urlpatterns: List = [
     path('admin/', admin.site.urls),

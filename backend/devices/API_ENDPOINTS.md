@@ -157,6 +157,200 @@ Content-Type: application/json
 
 ---
 
+### 4. Listar Alertas
+**Endpoint:** `GET /api/alerts/`
+
+**Descrição:** Lista todos os alertas (paginação: 20 por página).
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Query Parameters:**
+- `device_id` (opcional): Filtrar alertas por dispositivo específico (integer)
+- `status` (opcional): Filtrar por status (`pending` ou `resolved`)
+- `unresolved_only` (opcional): Filtrar apenas alertas não resolvidos (`true`)
+
+**Response (200 OK):**
+```json
+{
+  "count": 5,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "device": 1,
+      "title": "Temperatura alta detectada",
+      "message": "A temperatura do dispositivo excedeu 30°C",
+      "severity": "high",
+      "status": "pending",
+      "created_at": "2025-11-02T10:30:00Z",
+      "updated_at": "2025-11-02T10:30:00Z",
+      "resolved_at": null
+    },
+    ...
+  ]
+}
+```
+
+**Exemplos de Uso:**
+```
+# Listar todos os alertas
+GET /api/alerts/
+
+# Filtrar alertas não resolvidos
+GET /api/alerts/?unresolved_only=true
+
+# Filtrar alertas de um dispositivo específico
+GET /api/alerts/?device_id=1
+
+# Filtrar alertas resolvidos
+GET /api/alerts/?status=resolved
+```
+
+---
+
+### 5. Criar Alerta
+**Endpoint:** `POST /api/alerts/`
+
+**Descrição:** Cria um novo alerta.
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Request Body:**
+```json
+{
+  "device": 1,
+  "title": "Temperatura alta detectada",
+  "message": "A temperatura do dispositivo excedeu 30°C",
+  "severity": "high",
+  "status": "pending"
+}
+```
+
+**Campos Obrigatórios:**
+- `device` (integer): ID do dispositivo associado
+- `title` (string, min 3 caracteres): Título do alerta
+- `message` (string): Mensagem/descrição do alerta
+- `severity` (string): Nível de severidade (`low`, `medium`, `high`, `critical`)
+- `status` (string): Status do alerta (`pending`, `resolved`)
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "device": 1,
+  "title": "Temperatura alta detectada",
+  "message": "A temperatura do dispositivo excedeu 30°C",
+  "severity": "high",
+  "status": "pending",
+  "created_at": "2025-11-02T10:30:00Z",
+  "updated_at": "2025-11-02T10:30:00Z",
+  "resolved_at": null
+}
+```
+
+---
+
+### 6. Detalhar Alerta
+**Endpoint:** `GET /api/alerts/{id}/`
+
+**Descrição:** Retorna os detalhes de um alerta específico.
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "device": 1,
+  "title": "Temperatura alta detectada",
+  "message": "A temperatura do dispositivo excedeu 30°C",
+  "severity": "high",
+  "status": "pending",
+  "created_at": "2025-11-02T10:30:00Z",
+  "updated_at": "2025-11-02T10:30:00Z",
+  "resolved_at": null
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "detail": "Not found."
+}
+```
+
+---
+
+### 7. Atualizar Alerta
+**Endpoint:** `PUT /api/alerts/{id}/` ou `PATCH /api/alerts/{id}/`
+
+**Descrição:** Atualiza um alerta existente. Ao marcar como `resolved`, o campo `resolved_at` é preenchido automaticamente.
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Request Body (PUT - todos os campos):**
+```json
+{
+  "device": 1,
+  "title": "Temperatura alta detectada",
+  "message": "A temperatura do dispositivo excedeu 30°C e foi corrigida",
+  "severity": "high",
+  "status": "resolved"
+}
+```
+
+**Request Body (PATCH - campos parciais):**
+```json
+{
+  "status": "resolved"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "device": 1,
+  "title": "Temperatura alta detectada",
+  "message": "A temperatura do dispositivo excedeu 30°C e foi corrigida",
+  "severity": "high",
+  "status": "resolved",
+  "created_at": "2025-11-02T10:30:00Z",
+  "updated_at": "2025-11-02T10:35:00Z",
+  "resolved_at": "2025-11-02T10:35:00Z"
+}
+```
+
+**Nota:** Quando o status muda de `pending` para `resolved`, o campo `resolved_at` é automaticamente preenchido com a data/hora atual.
+
+---
+
+### 8. Deletar Alerta
+**Endpoint:** `DELETE /api/alerts/{id}/`
+
+**Descrição:** Remove um alerta do sistema.
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Response (204 No Content):**
+(Sem corpo de resposta)
+
+**Response (404 Not Found):**
+```json
+{
+  "detail": "Not found."
+}
+```
+
+---
+
 ## Validações
 
 ### Device Name
@@ -171,15 +365,43 @@ Content-Type: application/json
   - `maintenance`
   - `error`
 
+### Alert Title
+- Não pode ser vazio
+- Mínimo de 3 caracteres
+- Espaços no início/fim são removidos automaticamente
+
+### Alert Message
+- Não pode ser vazio
+
+### Alert Severity
+- Deve ser um dos valores válidos:
+  - `low`
+  - `medium`
+  - `high`
+  - `critical`
+
+### Alert Status
+- Deve ser um dos valores válidos:
+  - `pending`
+  - `resolved`
+
 ---
 
 ## Campos Read-Only
 
 Os seguintes campos são apenas leitura e não podem ser modificados via API:
+
+**Device:**
 - `id`
 - `public_id`
 - `created_at`
 - `updated_at`
+
+**Alert:**
+- `id`
+- `created_at`
+- `updated_at`
+- `resolved_at` (preenchido automaticamente ao marcar como resolved)
 
 ---
 
