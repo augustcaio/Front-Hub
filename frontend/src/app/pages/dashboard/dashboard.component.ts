@@ -5,7 +5,8 @@ import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { DeviceService, Device } from '../../core/services/device.service';
+import { MessageModule } from 'primeng/message';
+import { DeviceService, Device, Alert } from '../../core/services/device.service';
 
 interface StatusCount {
   active: number;
@@ -24,7 +25,8 @@ interface StatusCount {
     CardModule,
     ProgressSpinnerModule,
     TagModule,
-    ButtonModule
+    ButtonModule,
+    MessageModule
   ],
   templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,6 +38,7 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error: string | null = null;
   devices: Device[] = [];
+  alerts: Alert[] = [];
   statusCount: StatusCount = {
     active: 0,
     inactive: 0,
@@ -78,6 +81,7 @@ export class DashboardComponent implements OnInit {
       next: (response) => {
         this.devices = response.results.slice(0, 5); // Primeiros 5 para preview
         this.countStatus(response.results);
+        this.loadAlerts();
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -85,6 +89,20 @@ export class DashboardComponent implements OnInit {
         this.error = error.message || 'Erro ao carregar dados do dashboard';
         this.loading = false;
         this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadAlerts(): void {
+    // Buscar alertas não resolvidos
+    this.deviceService.getUnresolvedAlerts().subscribe({
+      next: (response) => {
+        this.alerts = response.results;
+        this.cdr.markForCheck();
+      },
+      error: (error: Error) => {
+        // Não exibir erro, apenas logar (alertas são opcionais)
+        console.error('Erro ao carregar alertas:', error);
       }
     });
   }
@@ -135,5 +153,50 @@ export class DashboardComponent implements OnInit {
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getSeveritySeverity(severity: string): 'success' | 'info' | 'warn' | 'error' {
+    const severityMap: { [key: string]: 'success' | 'info' | 'warn' | 'error' } = {
+      low: 'info',
+      medium: 'warn',
+      high: 'error',
+      critical: 'error'
+    };
+    return severityMap[severity] || 'info';
+  }
+
+  getSeverityLabel(severity: string): string {
+    const labelMap: { [key: string]: string } = {
+      low: 'Baixa',
+      medium: 'Média',
+      high: 'Alta',
+      critical: 'Crítica'
+    };
+    return labelMap[severity] || severity;
+  }
+
+  getAlertIcon(severity: string): string {
+    const iconMap: { [key: string]: string } = {
+      low: 'pi-info-circle',
+      medium: 'pi-exclamation-triangle',
+      high: 'pi-exclamation-circle',
+      critical: 'pi-times-circle'
+    };
+    return iconMap[severity] || 'pi-info-circle';
+  }
+
+  get hasUnresolvedAlerts(): boolean {
+    return this.alerts.length > 0;
   }
 }

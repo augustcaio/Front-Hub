@@ -42,6 +42,25 @@ export interface AggregatedDataResponse {
   count: number;
 }
 
+export interface Alert {
+  id: number;
+  device: number;
+  title: string;
+  message: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pending' | 'resolved';
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface AlertListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Alert[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -105,6 +124,24 @@ export class DeviceService {
     return this.http
       .get<AggregatedDataResponse>(`${this.apiUrl}/devices/${deviceId}/aggregated-data/`, { headers })
       .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Lista todos os alertas
+   */
+  getAlerts(unresolvedOnly: boolean = false): Observable<AlertListResponse> {
+    const headers = this.getAuthHeaders();
+    const params = unresolvedOnly ? '?unresolved_only=true' : '';
+    return this.http
+      .get<AlertListResponse>(`${this.apiUrl}/alerts${params}`, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Busca alertas não resolvidos
+   */
+  getUnresolvedAlerts(): Observable<AlertListResponse> {
+    return this.getAlerts(true);
   }
 
   /**
