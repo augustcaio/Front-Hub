@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -30,6 +30,7 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly loginForm: FormGroup = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
@@ -61,6 +62,8 @@ export class LoginComponent {
     this.authService.login(username, password).subscribe({
       next: () => {
         this.loading = false;
+        this.errorMessage = null;
+        this.cdr.markForCheck();
         // Redireciona para a URL de retorno ou dashboard padrão
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
         this.router.navigate([returnUrl]);
@@ -68,6 +71,7 @@ export class LoginComponent {
       error: (error: Error) => {
         this.loading = false;
         this.errorMessage = error.message || 'Erro ao realizar login';
+        this.cdr.markForCheck();
       }
     });
   }

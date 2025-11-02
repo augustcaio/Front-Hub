@@ -38,9 +38,12 @@ export class AuthService {
    */
   login(username: string, password: string): Observable<LoginResponse> {
     const body: LoginRequest = { username, password };
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    const headers = new HttpHeaders({ 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
 
-    return this.http.post<LoginResponse>(`${this.apiUrl}/token/`, body, { headers }).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/token/`, body, { headers, withCredentials: false }).pipe(
       tap((response) => {
         this.setTokens(response.access, response.refresh);
         this.isAuthenticatedSubject.next(true);
@@ -177,12 +180,19 @@ export class AuthService {
     } else {
       // Erro do lado do servidor
       if (error.status === 401) {
-        errorMessage = 'Credenciais inválidas';
+        // Verifica se há mensagem específica do backend
+        if (error.error?.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.error?.non_field_errors && Array.isArray(error.error.non_field_errors)) {
+          errorMessage = error.error.non_field_errors[0];
+        } else {
+          errorMessage = 'Usuário ou senha incorretos. Verifique suas credenciais.';
+        }
       } else if (error.status === 0) {
-        errorMessage = 'Não foi possível conectar ao servidor';
+        errorMessage = 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.';
       } else if (error.error?.detail) {
         errorMessage = error.error.detail;
-      } else if (error.error?.non_field_errors) {
+      } else if (error.error?.non_field_errors && Array.isArray(error.error.non_field_errors)) {
         errorMessage = error.error.non_field_errors[0];
       } else {
         errorMessage = `Erro ${error.status}: ${error.message}`;

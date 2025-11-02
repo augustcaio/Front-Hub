@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from accounts.serializers import CustomTokenObtainPairSerializer
 from devices.views import DeviceViewSet, MeasurementIngestionView
 from typing import List
 
@@ -24,7 +25,7 @@ urlpatterns: List = [
     path('admin/', admin.site.urls),
     
     # JWT Authentication endpoints
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', TokenObtainPairView.as_view(serializer_class=CustomTokenObtainPairSerializer), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
