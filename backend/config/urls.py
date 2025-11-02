@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
-from devices.views import DeviceViewSet
+from devices.views import DeviceViewSet, MeasurementIngestionView
 from typing import List
 
 # DRF Router configuration
@@ -30,6 +30,9 @@ urlpatterns: List = [
     
     # API endpoints
     path('api/', include(router.urls)),
+    
+    # Measurement ingestion endpoint
+    path('api/devices/<int:device_id>/measurements/', MeasurementIngestionView.as_view(), name='measurement_ingestion'),
 ]
 
 # Servir arquivos estáticos e media em desenvolvimento
