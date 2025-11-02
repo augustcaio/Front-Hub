@@ -173,6 +173,85 @@
         </div>
       </div>
     </p-card>
+
+    <!-- WebSocket Status -->
+    <p-card>
+      <div class="mb-4">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-wifi text-[var(--primary-color)]"></i>
+          Conexão em Tempo Real
+        </h3>
+        <p-divider></p-divider>
+      </div>
+      
+      <div class="mb-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-sm font-medium text-[var(--text-color-secondary)]">Status:</span>
+          <span *ngIf="wsStatus === 'connected'" class="flex items-center gap-2">
+            <i class="pi pi-check-circle text-green-500"></i>
+            <span class="text-green-600 font-medium">Conectado</span>
+          </span>
+          <span *ngIf="wsStatus === 'connecting'" class="flex items-center gap-2">
+            <i class="pi pi-spin pi-spinner text-blue-500"></i>
+            <span class="text-blue-600 font-medium">Conectando...</span>
+          </span>
+          <span *ngIf="wsStatus === 'disconnected'" class="flex items-center gap-2">
+            <i class="pi pi-times-circle text-gray-500"></i>
+            <span class="text-gray-600 font-medium">Desconectado</span>
+          </span>
+          <span *ngIf="wsStatus === 'error'" class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-red-500"></i>
+            <span class="text-red-600 font-medium">Erro na conexão</span>
+          </span>
+        </div>
+        <p class="m-0 text-xs text-[var(--text-color-secondary)]">
+          Recebendo atualizações de medições em tempo real via WebSocket
+        </p>
+      </div>
+    </p-card>
+
+    <!-- Medições Recentes -->
+    <p-card *ngIf="recentMeasurements.length > 0">
+      <div class="mb-4">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
+          Medições em Tempo Real
+        </h3>
+        <p-divider></p-divider>
+      </div>
+      
+      <div class="space-y-3">
+        <div 
+          *ngFor="let measurement of recentMeasurements" 
+          class="p-4 bg-[var(--surface-50)] rounded-lg border-l-4 border-[var(--primary-color)]">
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Métrica</span>
+              <span class="text-[var(--text-color)] font-semibold">{{ measurement.metric }}</span>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Valor</span>
+              <span class="text-[var(--text-color)] text-lg font-bold">{{ measurement.value }} {{ measurement.unit }}</span>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Timestamp</span>
+              <span class="text-[var(--text-color)] text-sm">{{ formatDate(measurement.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Empty Measurements Message -->
+    <p-card *ngIf="wsConnected && recentMeasurements.length === 0">
+      <div class="text-center py-8">
+        <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+        <p class="m-0 text-[var(--text-color-secondary)]">Aguardando medições em tempo real...</p>
+        <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
+          As novas medições do dispositivo aparecerão aqui automaticamente
+        </p>
+      </div>
+    </p-card>
   </div>
 </div>
 
