@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
@@ -14,6 +14,8 @@ import { MenuItem } from 'primeng/api';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent {
+  private readonly cdr = inject(ChangeDetectorRef);
+  
   @Output() menuToggle = new EventEmitter<void>();
 
   readonly menuItems: MenuItem[] = [
@@ -31,6 +33,7 @@ export class HeaderComponent {
 
   onMenuClick(): void {
     this.menuToggle.emit();
+    this.cdr.markForCheck();
   }
 }
 

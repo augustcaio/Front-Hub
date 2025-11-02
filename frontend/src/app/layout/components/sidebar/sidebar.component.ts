@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MenuModule } from 'primeng/menu';
@@ -16,12 +16,14 @@ import { MenuItem } from 'primeng/api';
 })
 export class SidebarComponent {
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   sidebarVisible = false;
 
   // Método público para ser chamado externamente
   openSidebar(): void {
     this.sidebarVisible = true;
+    this.cdr.markForCheck();
   }
 
   readonly menuItems: MenuItem[] = [
@@ -45,10 +47,12 @@ export class SidebarComponent {
 
   toggleSidebar(): void {
     this.sidebarVisible = !this.sidebarVisible;
+    this.cdr.markForCheck();
   }
 
   closeSidebar(): void {
     this.sidebarVisible = false;
+    this.cdr.markForCheck();
   }
 }
 
