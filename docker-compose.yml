@@ -55,8 +55,10 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      # Verifica se o servidor está respondendo (curl ou wget podem ser usados)
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/')\" || exit 1"]
+      # Verifica se o servidor está respondendo
+      # Aceita código 401 (Unauthorized) como sucesso, pois indica que o servidor está funcionando
+      # e apenas requer autenticação, o que é o comportamento esperado
+      test: ["CMD", "python", "healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 3
