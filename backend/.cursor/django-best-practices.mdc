@@ -1,0 +1,49 @@
+---
+alwaysApply: true
+---
+
+# Django & Python Best Practices
+
+Este projeto de backend adere aos padrões Python PEP 8 e a práticas de desenvolvimento Django sênior, priorizando manutenibilidade e escalabilidade.
+
+## 1. Python & Clean Code
+
+- **Tipagem Estrita (Type Hinting):** Utilize Type Hinting em todas as funções, métodos, argumentos e variáveis sempre que possível. Isso melhora a clareza e permite o uso de ferramentas de análise estática.
+- **Prefira o `is not None`:** Sempre use `if value is not None:` em vez de `if value:` para testar se uma variável tem um valor, especialmente se o valor puder ser `0` ou `False`, evitando falsos negativos.
+- **Princípio da Responsabilidade Única (SRP):** Classes, funções e módulos devem ter apenas uma razão para mudar. Funções não devem ter mais do que 50 linhas, idealmente menos.
+
+## 2. Django REST Framework (DRF)
+
+- **Serializers para Lógica de Dados:** Mantenha a lógica de validação de dados e a representação de recursos exclusivamente nos `Serializers`.
+- **DRF ViewSets:** Prefira `ModelViewSet` para endpoints CRUD simples. Use `GenericAPIView` combinada com _Mixins_ para necessidades mais complexas, garantindo a reutilização de código.
+- **Views Mínimas (Thin Views):** As _Views_ devem ser o mais finas possível, delegando a lógica de negócio (como a geração de alertas, a lógica de agregação de dados [cite: 47]) para a camada de **Serviços** ou **Managers** (Model Managers).
+- **Camada de Serviços (Service Layer):** Crie um diretório `services/` dentro de cada aplicativo para isolar toda a lógica de negócio complexa que não pertence nem ao `Model` nem ao `View`.
+
+## 3. Modelagem e ORM (PostgreSQL)
+
+- **Modelagem Relacional:** Garanta que as entidades `Usuário`, `Dispositivo`, `Medição`, `Categoria` e `Alerta` [cite: 47] estejam corretamente relacionadas (`ForeignKey`, `OneToOneField`) com índices apropriados para otimizar o acesso.
+- [cite_start]**`UUIDField` para `public_id`:** O campo `public_id` na entidade `Dispositivo` [cite: 47] deve ser um `UUIDField` para gerar identificadores únicos e não sequenciais.
+- **Otimização de Query (Evite N+1):** Use `select_related()` e `prefetch_related()` para otimizar a recuperação de dados e evitar o problema N+1, especialmente em _Views_ de listagem.
+- [cite_start]**Camada de Model Manager:** Para consultas complexas ou agregadas (ex: cálculo de médias, máximos e mínimos de precisão [cite: 47]), implemente `Custom Model Managers`. Isso mantém as _Views_ limpas e a lógica de consulta centralizada.
+
+## 4. WebSockets e Canais Django
+
+- **Separação ASGI/WSGI:** Utilize o Daphne (servidor ASGI) para WebSockets [cite: 47] e o Gunicorn (servidor WSGI) para as requisições HTTP REST, garantindo que o `channels` esteja configurado corretamente para o _routing_.
+- **Consumers Assíncronos:** Sempre utilize `AsyncWebsocketConsumer` para lidar com conexões WebSocket. Mantenha as operações de I/O (especialmente chamadas de banco de dados) fora do código do consumidor, usando `database_sync_to_async` quando necessário.
+- [cite_start]**Broadcasting Apenas em Mensagens Relevantes:** O envio de mensagens em tempo real (precisão) deve ser acionado apenas após a ingestão de um novo dado na API REST (Task 2.3), usando o _Channel Layer_ para notificar os consumidores[cite: 47].
+
+## 5. Testes (Qualidade e Cobertura)
+
+- **Priorize Testes Unitários:** O foco deve estar em testes unitários para a camada de `Serializers`, `Managers` (lógica de agregação de dados) [cite: 47] e a lógica isolada da camada de **Serviços** (Task 5.1).
+- **Testes de Integração DRF:** Use `APITestCase` para garantir que os _endpoints_ da API (CRUD e Agregados) estejam funcionando corretamente com o JWT e as permissões.
+- **Cobertura de Testes:** Mantenha a cobertura de testes em um nível aceitável, visando cobrir pelo menos 80% da lógica de negócio.
+
+---
+
+Com este guia, temos um mapa claro para garantir a qualidade do código Python, complementando o `angular-20.mdc` no frontend.
+
+**Próxima Task:** **1.2: Configurar ambiente de desenvolvimento Django.**
+
+O próximo passo é criar o projeto Django e configurá-lo para usar as variáveis de ambiente e o PostgreSQL, conforme definimos.
+
+**Qual o nome do projeto/aplicação que você gostaria de usar no Django?** (Ex: `iot_project` e `devices_app`).
