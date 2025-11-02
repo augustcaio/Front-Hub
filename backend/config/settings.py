@@ -43,6 +43,7 @@ INSTALLED_APPS: List[str] = [
     
     # Local apps
     'accounts',
+    'devices',
     
     # Third-party apps
     'rest_framework',
