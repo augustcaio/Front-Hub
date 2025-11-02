@@ -210,6 +210,59 @@
       </div>
     </p-card>
 
+    <!-- Gráfico de Precisão -->
+    <p-card class="mb-4">
+      <div class="mb-4">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
+          Histórico de Precisão
+        </h3>
+        <p-divider></p-divider>
+      </div>
+
+      <!-- Estatísticas Agregadas -->
+      <div *ngIf="aggregatedStats" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
+          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Média</span>
+          <span class="text-[var(--text-color)] text-lg font-bold">
+            {{ aggregatedStats.mean !== null ? (aggregatedStats.mean | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
+          </span>
+        </div>
+        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
+          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Máximo</span>
+          <span class="text-[var(--text-color)] text-lg font-bold">
+            {{ aggregatedStats.max !== null ? (aggregatedStats.max | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
+          </span>
+        </div>
+        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
+          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Mínimo</span>
+          <span class="text-[var(--text-color)] text-lg font-bold">
+            {{ aggregatedStats.min !== null ? (aggregatedStats.min | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Loading do Gráfico -->
+      <div *ngIf="chartLoading" class="flex flex-col items-center justify-center py-12">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+        <p class="mt-4 text-[var(--text-color-secondary)]">Carregando dados do gráfico...</p>
+      </div>
+
+      <!-- Gráfico -->
+      <div *ngIf="!chartLoading && chartData" class="w-full" style="height: 400px;">
+        <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+      </div>
+
+      <!-- Mensagem quando não há dados -->
+      <div *ngIf="!chartLoading && !chartData" class="text-center py-8">
+        <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+        <p class="m-0 text-[var(--text-color-secondary)]">Nenhum dado disponível para exibir no gráfico</p>
+        <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
+          Os dados aparecerão aqui quando houver medições do dispositivo
+        </p>
+      </div>
+    </p-card>
+
     <!-- Medições Recentes -->
     <p-card *ngIf="recentMeasurements.length > 0">
       <div class="mb-4">

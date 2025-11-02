@@ -21,6 +21,27 @@ export interface DeviceListResponse {
   results: Device[];
 }
 
+export interface Measurement {
+  id: number;
+  device: number;
+  metric: string;
+  value: string;
+  unit: string;
+  timestamp: string;
+}
+
+export interface AggregatedStatistics {
+  mean: number | null;
+  max: number | null;
+  min: number | null;
+}
+
+export interface AggregatedDataResponse {
+  measurements: Measurement[];
+  statistics: AggregatedStatistics;
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -74,6 +95,16 @@ export class DeviceService {
       }),
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );
+  }
+
+  /**
+   * Busca dados agregados de um dispositivo (últimos 100 pontos + estatísticas)
+   */
+  getAggregatedData(deviceId: number): Observable<AggregatedDataResponse> {
+    const headers = this.getAuthHeaders();
+    return this.http
+      .get<AggregatedDataResponse>(`${this.apiUrl}/devices/${deviceId}/aggregated-data/`, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 
   /**

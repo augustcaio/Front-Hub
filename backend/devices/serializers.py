@@ -98,3 +98,21 @@ class MeasurementSerializer(serializers.ModelSerializer):
         
         return value
 
+
+class AggregatedDataSerializer(serializers.Serializer):
+    """
+    Serializer for aggregated measurement data endpoint.
+    
+    Returns the last 100 measurement points and aggregated statistics
+    (mean, max, min) for a device.
+    """
+    measurements = MeasurementSerializer(many=True)
+    statistics = serializers.DictField()
+    
+    def to_representation(self, instance: dict) -> dict:
+        """Custom representation for aggregated data."""
+        return {
+            'measurements': instance['measurements'],
+            'statistics': instance['statistics'],
+            'count': instance['count']
+        }

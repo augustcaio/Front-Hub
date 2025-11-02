@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg, Max, Min, DecimalField
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
@@ -119,3 +120,67 @@ class MeasurementIngestionView(APIView):
                 f"Failed to send WebSocket update for device {device_public_id}: {str(e)}",
                 exc_info=True
             )
+
+
+class DeviceAggregatedDataView(APIView):
+    """
+    APIView for retrieving aggregated measurement data for a device.
+    
+    Endpoint: GET /api/devices/{device_id}/aggregated-data/
+    Returns the last 100 measurement points and aggregated statistics
+    (mean, max, min) for a specific device.
+    """
+    permission_classes: list = [IsAuthenticated]
+    
+    def get(self, request, device_id: int) -> Response:
+        """
+        Retrieve aggregated measurement data for the specified device.
+        
+        Args:
+            request: HTTP request object
+            device_id: ID of the device
+        
+        Returns:
+            Response: 200 OK with aggregated data, or 404 if device not found
+        """
+        # Get device or return 404
+        device = get_object_or_404(Device, id=device_id)
+        
+        # Get last 100 measurements for this device, ordered by timestamp (newest first)
+        measurements_qs = Measurement.objects.filter(
+            device=device
+        ).order_by('-timestamp')[:100]
+        
+        # Calculate aggregated statistics first (before evaluating the QuerySet)
+        aggregates = measurements_qs.aggregate(
+            avg_value=Avg('value', output_field=DecimalField()),
+            max_value=Max('value'),
+            min_value=Min('value')
+        )
+        
+        # Prepare statistics dictionary
+        if aggregates['avg_value'] is not None:
+            statistics = {
+                'mean': float(aggregates['avg_value']),
+                'max': float(aggregates['max_value']) if aggregates['max_value'] is not None else None,
+                'min': float(aggregates['min_value']) if aggregates['min_value'] is not None else None,
+            }
+        else:
+            # No measurements found
+            statistics = {
+                'mean': None,
+                'max': None,
+                'min': None,
+            }
+        
+        # Serialize measurements
+        measurement_data = MeasurementSerializer(measurements_qs, many=True).data
+        
+        # Prepare response data
+        response_data = {
+            'measurements': measurement_data,
+            'statistics': statistics,
+            'count': len(measurement_data)
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)

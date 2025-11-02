@@ -82,6 +82,81 @@ Content-Type: application/json
 
 ---
 
+### 3. Dados Agregados do Dispositivo
+**Endpoint:** `GET /api/devices/{device_id}/aggregated-data/`
+
+**Descrição:** Retorna os últimos 100 pontos de medição de um dispositivo e dados agregados (Média/Máx/Mín).
+
+**Autenticação:** Requerida (JWT Bearer Token)
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Path Parameters:**
+- `device_id`: ID do dispositivo (integer)
+
+**Response (200 OK):**
+```json
+{
+  "measurements": [
+    {
+      "id": 100,
+      "device": 1,
+      "metric": "temperature",
+      "value": "25.5000000000",
+      "unit": "°C",
+      "timestamp": "2025-11-02T10:30:00Z"
+    },
+    {
+      "id": 99,
+      "device": 1,
+      "metric": "temperature",
+      "value": "24.8000000000",
+      "unit": "°C",
+      "timestamp": "2025-11-02T10:29:00Z"
+    }
+    // ... até 100 medições (mais recentes primeiro)
+  ],
+  "statistics": {
+    "mean": 25.15,
+    "max": 26.80,
+    "min": 23.50
+  },
+  "count": 100
+}
+```
+
+**Response (200 OK - Sem medições):**
+```json
+{
+  "measurements": [],
+  "statistics": {
+    "mean": null,
+    "max": null,
+    "min": null
+  },
+  "count": 0
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**Notas:**
+- Retorna até 100 medições, ordenadas por timestamp (mais recentes primeiro)
+- Os dados agregados (mean, max, min) são calculados apenas sobre os últimos 100 pontos retornados
+- Se não houver medições, as estatísticas retornarão `null`
+- O campo `count` indica quantas medições foram retornadas (máximo 100)
+
+---
+
 ## Validações
 
 ### Device Name

@@ -14,7 +14,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from accounts.serializers import CustomTokenObtainPairSerializer
-from devices.views import DeviceViewSet, MeasurementIngestionView
+from devices.views import DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView
 from typing import List
 
 # DRF Router configuration
@@ -34,6 +34,9 @@ urlpatterns: List = [
     
     # Measurement ingestion endpoint
     path('api/devices/<int:device_id>/measurements/', MeasurementIngestionView.as_view(), name='measurement_ingestion'),
+    
+    # Aggregated data endpoint
+    path('api/devices/<int:device_id>/aggregated-data/', DeviceAggregatedDataView.as_view(), name='device_aggregated_data'),
 ]
 
 # Servir arquivos estáticos e media em desenvolvimento
