@@ -58,6 +58,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   chartLoading = false;
   aggregatedStats: AggregatedStatistics | null = null;
   chartUnit = '';
+  chartMeasurements: Measurement[] = []; // Armazenar medições do gráfico para recalcular estatísticas
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -114,6 +115,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     this.deviceService.getAggregatedData(this.deviceId).subscribe({
       next: (data) => {
         this.aggregatedStats = data.statistics;
+        // Armazenar medições para recalcular estatísticas em tempo real
+        this.chartMeasurements = [...data.measurements];
         this.prepareChartData(data.measurements);
         this.chartLoading = false;
         this.cdr.markForCheck();
@@ -129,6 +132,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   prepareChartData(measurements: Measurement[]): void {
     if (!measurements || measurements.length === 0) {
       this.chartData = null;
+      this.chartMeasurements = [];
       return;
     }
 
@@ -136,6 +140,9 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     const sortedMeasurements = [...measurements].sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
+
+    // Armazenar medições ordenadas
+    this.chartMeasurements = sortedMeasurements;
 
     // Pegar a unidade da primeira medição (assumindo que todas têm a mesma unidade)
     if (sortedMeasurements.length > 0) {
@@ -305,11 +312,89 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   }
 
   updateChartWithNewMeasurement(measurement: any): void {
+    // Se o gráfico ainda não foi inicializado, inicializar com esta medição
     if (!this.chartData || !this.chartData.datasets || this.chartData.datasets.length === 0) {
+      // Inicializar gráfico com a primeira medição recebida via WebSocket
+      this.initializeChartWithMeasurement(measurement);
+      this.cdr.markForCheck();
       return;
     }
 
-    // Adicionar novo ponto ao gráfico
+    // Converter medição recebida para o formato Measurement
+    const newMeasurement: Measurement = {
+      id: measurement.id,
+      device: measurement.device,
+      metric: measurement.metric,
+      value: measurement.value,
+      unit: measurement.unit,
+      timestamp: measurement.timestamp
+    };
+
+    // Adicionar nova medição à lista (já ordenada)
+    this.chartMeasurements.push(newMeasurement);
+    
+    // Ordenar por timestamp (mais antigas primeiro)
+    this.chartMeasurements.sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    // Manter apenas os últimos 100 pontos
+    if (this.chartMeasurements.length > 100) {
+      this.chartMeasurements.shift();
+    }
+
+    // Atualizar unidade se necessário
+    if (newMeasurement.unit && !this.chartUnit) {
+      this.chartUnit = newMeasurement.unit;
+    }
+
+    // Preparar novos dados do gráfico a partir da lista atualizada
+    const labels = this.chartMeasurements.map(m => {
+      const date = new Date(m.timestamp);
+      return date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    });
+
+    const values = this.chartMeasurements.map(m => parseFloat(m.value));
+
+    // Atualizar dados do gráfico
+    this.chartData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Precisão',
+          data: values,
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    // Recalcular estatísticas agregadas
+    this.recalculateAggregatedStats();
+
+    // Trigger de mudança (OnPush)
+    this.cdr.markForCheck();
+  }
+
+  private initializeChartWithMeasurement(measurement: any): void {
+    const newMeasurement: Measurement = {
+      id: measurement.id,
+      device: measurement.device,
+      metric: measurement.metric,
+      value: measurement.value,
+      unit: measurement.unit,
+      timestamp: measurement.timestamp
+    };
+
+    this.chartMeasurements = [newMeasurement];
+    this.chartUnit = measurement.unit || '';
+
     const date = new Date(measurement.timestamp);
     const label = date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
@@ -317,18 +402,55 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
       second: '2-digit'
     });
 
-    // Adicionar novo label e valor
-    this.chartData.labels.push(label);
-    this.chartData.datasets[0].data.push(parseFloat(measurement.value));
+    this.chartData = {
+      labels: [label],
+      datasets: [
+        {
+          label: 'Precisão',
+          data: [parseFloat(measurement.value)],
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
 
-    // Manter apenas os últimos 100 pontos (mesmo que o endpoint)
-    if (this.chartData.labels.length > 100) {
-      this.chartData.labels.shift();
-      this.chartData.datasets[0].data.shift();
+    this.setupChartOptions();
+    this.recalculateAggregatedStats();
+  }
+
+  private recalculateAggregatedStats(): void {
+    if (!this.chartMeasurements || this.chartMeasurements.length === 0) {
+      this.aggregatedStats = {
+        mean: null,
+        max: null,
+        min: null
+      };
+      return;
     }
 
-    // Recriar objeto para trigger de mudança (OnPush)
-    this.chartData = { ...this.chartData };
+    const values = this.chartMeasurements.map(m => parseFloat(m.value));
+    
+    if (values.length === 0) {
+      this.aggregatedStats = {
+        mean: null,
+        max: null,
+        min: null
+      };
+      return;
+    }
+
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const mean = sum / values.length;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+
+    this.aggregatedStats = {
+      mean: mean,
+      max: max,
+      min: min
+    };
   }
 }
 
