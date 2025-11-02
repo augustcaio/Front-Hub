@@ -1,0 +1,165 @@
+<div class="p-4 max-w-[1400px] mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="m-0 mb-2 text-[#1f2937] text-3xl font-semibold">Dashboard</h1>
+    <p class="m-0 text-[#6b7280] text-base">Visão geral do sistema Front-Hub</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex flex-col items-center justify-center p-12 text-center">
+    <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+    <p class="mt-4 text-[#6b7280]">Carregando dados...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="mt-4">
+    <p-card>
+      <div class="flex flex-col items-center gap-4 p-4">
+        <i class="pi pi-exclamation-triangle text-5xl text-red-500"></i>
+        <p class="m-0 text-[#1f2937]">{{ error }}</p>
+        <p-button 
+          label="Tentar novamente" 
+          icon="pi pi-refresh" 
+          (click)="loadDashboardData()"
+          [styleClass]="'p-button-outlined'">
+        </p-button>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && !error">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+      <!-- Total Devices Card -->
+      <p-card class="cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+          <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center text-2xl text-white bg-gradient-to-br from-blue-500 to-blue-600">
+            <i class="pi pi-server"></i>
+          </div>
+          <div class="flex flex-col flex-1">
+            <span class="text-sm text-[#6b7280] mb-1">Total de Dispositivos</span>
+            <span class="text-3xl font-semibold text-[#1f2937]">{{ totalCount }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Active Devices Card -->
+      <p-card class="cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+          <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center text-2xl text-white bg-gradient-to-br from-green-500 to-green-600">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="flex flex-col flex-1">
+            <span class="text-sm text-[#6b7280] mb-1">Ativos</span>
+            <span class="text-3xl font-semibold text-[#1f2937]">{{ activeCount }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Inactive Devices Card -->
+      <p-card class="cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+          <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center text-2xl text-white bg-gradient-to-br from-gray-400 to-gray-500">
+            <i class="pi pi-pause-circle"></i>
+          </div>
+          <div class="flex flex-col flex-1">
+            <span class="text-sm text-[#6b7280] mb-1">Inativos</span>
+            <span class="text-3xl font-semibold text-[#1f2937]">{{ inactiveCount }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Maintenance Devices Card -->
+      <p-card class="cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+          <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center text-2xl text-white bg-gradient-to-br from-orange-500 to-orange-600">
+            <i class="pi pi-wrench"></i>
+          </div>
+          <div class="flex flex-col flex-1">
+            <span class="text-sm text-[#6b7280] mb-1">Em Manutenção</span>
+            <span class="text-3xl font-semibold text-[#1f2937]">{{ maintenanceCount }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Error Devices Card -->
+      <p-card class="cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+          <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center text-2xl text-white bg-gradient-to-br from-red-500 to-red-600">
+            <i class="pi pi-times-circle"></i>
+          </div>
+          <div class="flex flex-col flex-1">
+            <span class="text-sm text-[#6b7280] mb-1">Com Erro</span>
+            <span class="text-3xl font-semibold text-[#1f2937]">{{ errorCount }}</span>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Recent Devices -->
+    <div class="mt-8">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+        <h2 class="m-0 text-[#1f2937] text-2xl font-semibold">Dispositivos Recentes</h2>
+        <p-button 
+          label="Ver Todos" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          [routerLink]="['/devices']"
+          [styleClass]="'p-button-text'">
+        </p-button>
+      </div>
+
+      <div *ngIf="devices.length === 0" class="mt-4">
+        <p-card>
+          <div class="flex flex-col items-center gap-4 p-8 text-center">
+            <i class="pi pi-inbox text-6xl text-[#6b7280]"></i>
+            <p class="m-0 text-[#6b7280]">Nenhum dispositivo encontrado</p>
+            <p-button 
+              label="Criar Dispositivo" 
+              icon="pi pi-plus"
+              [routerLink]="['/devices']">
+            </p-button>
+          </div>
+        </p-card>
+      </div>
+
+      <div *ngIf="devices.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <p-card *ngFor="let device of devices" class="h-full flex flex-col">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="m-0 mr-2 text-lg font-semibold text-[#1f2937] flex-1">{{ device.name }}</h3>
+            <p-tag 
+              [value]="getStatusLabel(device.status)" 
+              [severity]="getStatusSeverity(device.status)">
+            </p-tag>
+          </div>
+          
+          <div class="flex-1 mb-4">
+            <p *ngIf="device.description" class="m-0 mb-3 text-[#6b7280] text-sm leading-relaxed">
+              {{ device.description }}
+            </p>
+            <div class="flex flex-col gap-2">
+              <span class="flex items-center gap-2 text-xs text-[#6b7280]">
+                <i class="pi pi-calendar text-sm"></i>
+                Criado em {{ formatDate(device.created_at) }}
+              </span>
+              <span class="flex items-center gap-2 text-xs text-[#6b7280]">
+                <i class="pi pi-id-card text-sm"></i>
+                {{ device.public_id }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4 mt-auto border-t border-[#e5e7eb]">
+            <p-button 
+              label="Ver Detalhes" 
+              icon="pi pi-eye" 
+              [routerLink]="['/devices', device.id]"
+              [styleClass]="'p-button-outlined p-button-sm'">
+            </p-button>
+          </div>
+        </p-card>
+      </div>
+    </div>
+  </div>
+</div>

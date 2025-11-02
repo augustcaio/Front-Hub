@@ -1,3 +1,13 @@
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PrimeNG Theme - Mantém compatibilidade */
+@import "node_modules/primeng/resources/themes/lara-light-blue/theme.css";
+@import "node_modules/primeng/resources/primeng.min.css";
+@import "node_modules/primeicons/primeicons.css";
+
 /* Global Styles - Front-Hub */
 
 /* Reset e base */
@@ -38,20 +48,5 @@ a:hover {
 
 /* Utilities */
 .container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-@media (min-width: 768px) {
-  .container {
-    padding: 0 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 0 2rem;
-  }
+  @apply w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8;
 }

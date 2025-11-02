@@ -22,7 +22,6 @@ import { AuthService } from '../../core/services/auth.service';
     MessageModule
   ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent {

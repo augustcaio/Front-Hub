@@ -1,80 +1,82 @@
-<div class="login-container">
-  <div class="login-card-wrapper">
-    <p-card styleClass="login-card">
-      <ng-template pTemplate="header">
-        <div class="login-header">
-          <h1>Front-Hub</h1>
-          <p class="subtitle">Acesse sua conta</p>
-        </div>
-      </ng-template>
+<div class="flex items-center justify-center min-h-screen p-4 bg-[var(--surface-ground)]">
+  <div class="w-full max-w-[420px]">
+    <p-card styleClass="login-card shadow-lg">
+      <!-- Header -->
+      <div class="text-center py-6">
+        <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--primary-color)]">Front-Hub</h1>
+        <p class="m-0 text-[var(--text-color-secondary)] text-[0.95rem]">Acesse sua conta</p>
+      </div>
 
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-4">
+        <p-message 
+          severity="error" 
+          [text]="errorMessage">
+        </p-message>
+      </div>
+
+      <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <!-- Username Field -->
-        <div class="form-field">
-          <label for="username" class="field-label">
-            Usuário <span class="required">*</span>
+        <div class="mb-6">
+          <label for="username" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+            Usuário <span class="text-red-500">*</span>
           </label>
-          <input
+          <input 
             id="username"
             type="text"
             pInputText
             formControlName="username"
             placeholder="Digite seu usuário"
+            class="w-full"
             [class.ng-invalid]="username?.invalid && username?.touched"
             [class.ng-valid]="username?.valid && username?.touched"
-          />
-          <small
-            class="p-error"
-            *ngIf="username?.invalid && username?.touched"
-          >
-            <ng-container *ngIf="username?.errors?.['required']">Usuário é obrigatório</ng-container>
-            <ng-container *ngIf="username?.errors?.['minlength']">Usuário deve ter no mínimo 3 caracteres</ng-container>
-          </small>
+            />
+          <ng-container *ngIf="username?.invalid && username?.touched">
+            <small class="text-red-500 text-xs block mt-1">
+              <span *ngIf="username?.errors?.['required']">Usuário é obrigatório</span>
+              <span *ngIf="username?.errors?.['minlength']">Usuário deve ter pelo menos 3 caracteres</span>
+            </small>
+          </ng-container>
         </div>
 
         <!-- Password Field -->
-        <div class="form-field">
-          <label for="password" class="field-label">
-            Senha <span class="required">*</span>
+        <div class="mb-6">
+          <label for="password" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+            Senha <span class="text-red-500">*</span>
           </label>
-          <p-password
+          <p-password 
             id="password"
             formControlName="password"
             placeholder="Digite sua senha"
             [feedback]="false"
             [toggleMask]="true"
-            [style]="{ width: '100%' }"
-            [inputStyle]="{ width: '100%' }"
+            styleClass="w-full"
+            inputStyleClass="w-full"
             [class.ng-invalid]="password?.invalid && password?.touched"
-            [class.ng-valid]="password?.valid && password?.touched"
-          ></p-password>
-          <small
-            class="p-error"
-            *ngIf="password?.invalid && password?.touched"
-          >
-            <ng-container *ngIf="password?.errors?.['required']">Senha é obrigatória</ng-container>
-            <ng-container *ngIf="password?.errors?.['minlength']">Senha deve ter no mínimo 4 caracteres</ng-container>
-          </small>
-        </div>
-
-        <!-- Error Message -->
-        <div *ngIf="errorMessage" class="error-message">
-          <p-message severity="error" [text]="errorMessage"></p-message>
+            [class.ng-valid]="password?.valid && password?.touched">
+          </p-password>
+          <ng-container *ngIf="password?.invalid && password?.touched">
+            <small class="text-red-500 text-xs block mt-1">
+              <span *ngIf="password?.errors?.['required']">Senha é obrigatória</span>
+              <span *ngIf="password?.errors?.['minlength']">Senha deve ter pelo menos 4 caracteres</span>
+            </small>
+          </ng-container>
         </div>
 
         <!-- Submit Button -->
-        <div class="form-actions">
-          <p-button
+        <div class="mt-8">
+          <p-button 
             type="submit"
             label="Entrar"
-            icon="pi pi-sign-in"
+            icon="pi pi-arrow-right"
+            iconPos="right"
             [loading]="loading"
             [disabled]="loginForm.invalid || loading"
-            styleClass="p-button-primary p-button-block"
-          ></p-button>
+            styleClass="w-full py-3">
+          </p-button>
         </div>
       </form>
     </p-card>
   </div>
 </div>
-

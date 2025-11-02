@@ -10,7 +10,6 @@ import { MenuItem } from 'primeng/api';
   standalone: true,
   imports: [CommonModule, RouterModule, MenubarModule, ButtonModule],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent {

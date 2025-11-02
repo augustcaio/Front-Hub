@@ -9,7 +9,6 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
   standalone: true,
   imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
   templateUrl: './layout.component.html',
-  styleUrls: ['./layout.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LayoutComponent implements AfterViewInit {
