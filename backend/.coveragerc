@@ -1,0 +1,40 @@
+[run]
+source = .
+omit =
+    */migrations/*
+    */venv/*
+    */env/*
+    */__pycache__/*
+    */tests/*
+    */test_*.py
+    manage.py
+    */settings/*
+    */asgi.py
+    */wsgi.py
+    */admin.py
+    */apps.py
+    */urls.py
+    */routing.py
+    */consumers.py
+    */init_db.py
+    */generate_secret_key.py
+    */create_superuser.py
+    */create_test_devices.py
+    */healthcheck.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+precision = 2
+show_missing = True
+skip_covered = False
+
+[html]
+directory = htmlcov
+

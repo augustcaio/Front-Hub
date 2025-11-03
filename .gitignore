@@ -52,3 +52,11 @@ Thumbs.db
 # Docker
 *.pid
 
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+coverage.xml
+*.coveragerc.bak
+

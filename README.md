@@ -498,6 +498,16 @@ docker-compose exec backend python manage.py test
 # Testes de uma app específica
 docker-compose exec backend python manage.py test accounts
 docker-compose exec backend python manage.py test devices
+
+# Testes com relatório de cobertura
+docker-compose exec backend coverage run --source='.' manage.py test
+docker-compose exec backend coverage report
+docker-compose exec backend coverage html
+
+# Ver relatório HTML de cobertura (após executar coverage html)
+# Os arquivos estarão em: backend/htmlcov/index.html
+# Para acessar via Docker:
+docker-compose exec backend ls -la htmlcov/
 ```
 
 #### Frontend
@@ -507,9 +517,64 @@ cd frontend
 npm test
 ```
 
+### Linter e Qualidade de Código
+
+#### Backend (Flake8)
+
+```bash
+# Executar linter no código backend
+docker-compose exec backend flake8 .
+
+# Executar linter em um diretório específico
+docker-compose exec backend flake8 devices/
+
+# Executar linter com saída detalhada
+docker-compose exec backend flake8 . --statistics --count
+```
+
+### Cobertura de Testes
+
+O projeto utiliza `coverage.py` para gerar relatórios de cobertura de código. A configuração está em:
+- `backend/.coveragerc` - Configuração principal do coverage
+- `backend/setup.cfg` - Configurações adicionais (coverage e flake8)
+
+**Comandos úteis:**
+
+```bash
+# 1. Executar testes com coverage
+docker-compose exec backend coverage run --source='.' manage.py test
+
+# 2. Gerar relatório textual no terminal
+docker-compose exec backend coverage report
+
+# 3. Gerar relatório HTML (mais detalhado)
+docker-compose exec backend coverage html
+
+# 4. Ver apenas a cobertura geral (útil para CI/CD)
+docker-compose exec backend coverage report --show-missing | tail -1
+
+# 5. Combinar comandos (executar testes e gerar relatório)
+docker-compose exec backend coverage run --source='.' manage.py test && coverage report
+```
+
+**Estrutura do relatório de cobertura:**
+- Relatório textual: exibido no terminal
+- Relatório HTML: arquivos em `backend/htmlcov/`
+  - Abra `backend/htmlcov/index.html` no navegador para ver a cobertura detalhada
+  - Cada arquivo mostra quais linhas foram testadas e quais não foram
+
+**Arquivos excluídos da cobertura:**
+- Migrações Django (`*/migrations/*`)
+- Arquivos de configuração (`manage.py`, `settings/*`, `urls.py`, etc.)
+- Scripts utilitários (`init_db.py`, `create_superuser.py`, etc.)
+- Código de teste (`*/tests/*`, `test_*.py`)
+
 ### Estrutura de Testes
 
-- **Backend**: Testes unitários para Models e Serializers (Django TestCase)
+- **Backend**: 
+  - Testes unitários para Models e Serializers (Django TestCase)
+  - Testes de integração para ViewSets e endpoints API (APITestCase)
+  - Validação de permissões JWT e comportamento CRUD
 - **Frontend**: Testes unitários para Services (Jasmine/Karma)
 
 ## 📄 Licença
