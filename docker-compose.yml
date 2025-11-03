@@ -73,6 +73,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
     container_name: front_hub_frontend
     ports:
       - "${FRONTEND_PORT:-4200}:80"
@@ -80,15 +82,20 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      # Verifica se o Nginx está respondendo na porta 80
-      test: ["CMD-SHELL", "if [ -f /var/run/nginx.pid ]; then exit 0; else exit 1; fi"]
+      # Verifica se o Nginx está respondendo na porta 80 usando curl
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     networks:
       - frontend_network
+      - backend_network  # Precisa acessar o backend para proxy reverso
     restart: unless-stopped
+    environment:
+      # Variáveis de ambiente podem ser usadas para configuração dinâmica
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
 
 volumes:
   postgres_data:
