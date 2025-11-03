@@ -14,10 +14,27 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
 
-from .models import Device, Measurement, Alert
-from .serializers import DeviceSerializer, MeasurementSerializer, AlertSerializer
+from .models import Category, Device, Measurement, Alert
+from .serializers import CategorySerializer, DeviceSerializer, MeasurementSerializer, AlertSerializer
 
 logger = logging.getLogger(__name__)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Category model.
+    
+    Provides full CRUD operations (Create, Read, Update, Delete).
+    Uses JWT authentication (configured globally in settings).
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes: list = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Return queryset ordered by name (as defined in model Meta)."""
+        # Model Meta already defines ordering by 'name', but we make it explicit here
+        return Category.objects.all()
 
 
 class DeviceViewSet(viewsets.ModelViewSet):

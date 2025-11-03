@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.serializers import UserRegistrationSerializer, UserSerializer
 
 
@@ -15,7 +16,7 @@ from accounts.serializers import UserRegistrationSerializer, UserSerializer
 @permission_classes([AllowAny])
 def register_user(request) -> Response:
     """
-    Register a new user.
+    Register a new user and return JWT tokens.
     
     Endpoint: POST /api/register/
     
@@ -29,19 +30,39 @@ def register_user(request) -> Response:
     }
     
     Returns:
-        Response with user data (excluding password) or validation errors
+        Response with user data, access_token, and refresh_token
+        {
+            "user": {
+                "id": int,
+                "username": "string",
+                "email": "string",
+                "first_name": "string",
+                "last_name": "string"
+            },
+            "access": "string",
+            "refresh": "string"
+        }
+        or validation errors
     """
     serializer = UserRegistrationSerializer(data=request.data)
     
     if serializer.is_valid():
         user = serializer.save()
-        # Return user data without password
+        
+        # Generate JWT tokens for the newly created user
+        refresh = RefreshToken.for_user(user)
+        
+        # Return user data with JWT tokens
         return Response({
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            },
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
         }, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

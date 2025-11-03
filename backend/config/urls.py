@@ -15,11 +15,12 @@ from rest_framework_simplejwt.views import (
 )
 from accounts.serializers import CustomTokenObtainPairSerializer
 from accounts.views import register_user, get_current_user
-from devices.views import DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, AlertViewSet
+from devices.views import CategoryViewSet, DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, AlertViewSet
 from typing import List
 
 # DRF Router configuration
 router = routers.DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'devices', DeviceViewSet, basename='device')
 router.register(r'alerts', AlertViewSet, basename='alert')
 

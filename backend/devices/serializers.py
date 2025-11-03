@@ -7,7 +7,40 @@ Following Django REST Framework best practices:
 """
 from rest_framework import serializers
 from django.utils import timezone
-from .models import Device, Measurement, Alert
+from .models import Category, Device, Measurement, Alert
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """
+    Serializer for Category model.
+    
+    Handles data validation and representation for Category resources.
+    """
+    
+    class Meta:
+        model = Category
+        fields: list[str] = [
+            'id',
+            'name',
+            'description',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields: list[str] = [
+            'id',
+            'created_at',
+            'updated_at',
+        ]
+    
+    def validate_name(self, value: str) -> str:
+        """Validate category name."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("Category name cannot be empty.")
+        
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Category name must be at least 3 characters long.")
+        
+        return value.strip()
 
 
 class DeviceSerializer(serializers.ModelSerializer):
