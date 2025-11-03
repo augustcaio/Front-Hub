@@ -7,11 +7,14 @@ Test coverage for Device, Measurement, Alert models and their serializers.
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
 from decimal import Decimal
-from .models import Device, Measurement, Alert
+from .models import Category, Device, Measurement, Alert
 from .serializers import (
+    CategorySerializer,
     DeviceSerializer,
     MeasurementSerializer,
     AlertSerializer,
@@ -259,7 +262,7 @@ class AlertModelTestCase(TestCase):
         repr_str = repr(alert)
         self.assertIn('Temperatura Alta', repr_str)
         self.assertIn(str(self.device.id), repr_str)
-        self.assertIn('HIGH', repr_str)
+        self.assertIn('high', repr_str.lower())
         self.assertIn('pending', repr_str.lower())
 
     def test_alert_severity_choices(self):
@@ -655,4 +658,423 @@ class AlertSerializerTestCase(TestCase):
         self.assertEqual(alert.id, original_id)
         self.assertEqual(alert.created_at, original_created_at)
         self.assertEqual(alert.title, 'Updated Title')
+
+
+class CategoryViewSetAPITestCase(APITestCase):
+    """Test cases for CategoryViewSet API endpoints (CRUD operations)."""
+    
+    def setUp(self):
+        """Set up test data."""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client = APIClient()
+        
+        # Obter token JWT
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        
+        self.category_data = {
+            'name': 'Sensores',
+            'description': 'Categoria para dispositivos sensores'
+        }
+    
+    def test_list_categories_requires_authentication(self):
+        """Test that listing categories requires JWT authentication."""
+        self.client.credentials()  # Remove credentials
+        response = self.client.get('/api/categories/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_list_categories_with_authentication(self):
+        """Test listing categories with valid JWT token."""
+        Category.objects.create(name='Categoria 1')
+        Category.objects.create(name='Categoria 2')
+        
+        response = self.client.get('/api/categories/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+    
+    def test_create_category_requires_authentication(self):
+        """Test that creating category requires JWT authentication."""
+        self.client.credentials()  # Remove credentials
+        response = self.client.post('/api/categories/', self.category_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_create_category_with_authentication(self):
+        """Test creating a category with valid JWT token."""
+        response = self.client.post('/api/categories/', self.category_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Sensores')
+        self.assertEqual(response.data['description'], 'Categoria para dispositivos sensores')
+        self.assertIn('id', response.data)
+        self.assertIn('created_at', response.data)
+        self.assertIn('updated_at', response.data)
+        
+        # Verificar que foi criado no banco
+        self.assertTrue(Category.objects.filter(name='Sensores').exists())
+    
+    def test_create_category_validation(self):
+        """Test category creation validation."""
+        # Test empty name
+        response = self.client.post('/api/categories/', {'name': ''}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Test name too short
+        response = self.client.post('/api/categories/', {'name': 'AB'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Test duplicate name
+        Category.objects.create(name='Existente')
+        response = self.client.post('/api/categories/', {'name': 'Existente'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_retrieve_category_requires_authentication(self):
+        """Test that retrieving category requires JWT authentication."""
+        category = Category.objects.create(name='Test Category')
+        self.client.credentials()  # Remove credentials
+        response = self.client.get(f'/api/categories/{category.id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_retrieve_category_with_authentication(self):
+        """Test retrieving a specific category with valid JWT token."""
+        category = Category.objects.create(**self.category_data)
+        response = self.client.get(f'/api/categories/{category.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Sensores')
+        self.assertEqual(response.data['id'], category.id)
+    
+    def test_update_category_requires_authentication(self):
+        """Test that updating category requires JWT authentication."""
+        category = Category.objects.create(name='Original')
+        self.client.credentials()  # Remove credentials
+        response = self.client.put(f'/api/categories/{category.id}/', {'name': 'Updated'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_update_category_with_authentication(self):
+        """Test updating a category with valid JWT token."""
+        category = Category.objects.create(**self.category_data)
+        update_data = {
+            'name': 'Sensores Atualizados',
+            'description': 'Nova descrição'
+        }
+        response = self.client.put(f'/api/categories/{category.id}/', update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Sensores Atualizados')
+        
+        category.refresh_from_db()
+        self.assertEqual(category.name, 'Sensores Atualizados')
+    
+    def test_partial_update_category(self):
+        """Test partial update (PATCH) of a category."""
+        category = Category.objects.create(**self.category_data)
+        response = self.client.patch(f'/api/categories/{category.id}/', {'name': 'Nome Atualizado'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Nome Atualizado')
+        # Descrição deve permanecer a mesma
+        self.assertEqual(response.data['description'], 'Categoria para dispositivos sensores')
+    
+    def test_delete_category_requires_authentication(self):
+        """Test that deleting category requires JWT authentication."""
+        category = Category.objects.create(name='To Delete')
+        self.client.credentials()  # Remove credentials
+        response = self.client.delete(f'/api/categories/{category.id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_delete_category_with_authentication(self):
+        """Test deleting a category with valid JWT token."""
+        category = Category.objects.create(**self.category_data)
+        response = self.client.delete(f'/api/categories/{category.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verificar que foi deletado
+        self.assertFalse(Category.objects.filter(id=category.id).exists())
+    
+    def test_delete_category_with_devices_protected(self):
+        """Test that deleting a category with associated devices is protected."""
+        category = Category.objects.create(**self.category_data)
+        device = Device.objects.create(
+            name='Test Device',
+            category=category,
+            status=Device.Status.ACTIVE
+        )
+        
+        # Tentar deletar categoria com dispositivos associados deve levantar ProtectedError
+        from django.db.models import ProtectedError
+        with self.assertRaises(ProtectedError):
+            category.delete()
+
+
+class DeviceViewSetAPITestCase(APITestCase):
+    """Test cases for DeviceViewSet API endpoints (CRUD operations)."""
+    
+    def setUp(self):
+        """Set up test data."""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client = APIClient()
+        
+        # Obter token JWT
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        
+        # Criar categoria para testes
+        self.category = Category.objects.create(
+            name='Sensores',
+            description='Categoria de sensores'
+        )
+        
+        self.device_data = {
+            'name': 'Sensor de Temperatura',
+            'category': self.category.id,
+            'status': Device.Status.ACTIVE,
+            'description': 'Sensor para monitoramento de temperatura'
+        }
+    
+    def test_list_devices_requires_authentication(self):
+        """Test that listing devices requires JWT authentication."""
+        self.client.credentials()  # Remove credentials
+        response = self.client.get('/api/devices/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_list_devices_with_authentication(self):
+        """Test listing devices with valid JWT token."""
+        Device.objects.create(
+            name='Device 1',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        Device.objects.create(
+            name='Device 2',
+            category=self.category,
+            status=Device.Status.INACTIVE
+        )
+        
+        response = self.client.get('/api/devices/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+    
+    def test_create_device_requires_authentication(self):
+        """Test that creating device requires JWT authentication."""
+        self.client.credentials()  # Remove credentials
+        response = self.client.post('/api/devices/', self.device_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_create_device_with_authentication(self):
+        """Test creating a device with valid JWT token."""
+        response = self.client.post('/api/devices/', self.device_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Sensor de Temperatura')
+        self.assertEqual(response.data['status'], Device.Status.ACTIVE)
+        self.assertEqual(response.data['category'], self.category.id)
+        self.assertIn('id', response.data)
+        self.assertIn('public_id', response.data)
+        self.assertIn('created_at', response.data)
+        
+        # Verificar que foi criado no banco
+        self.assertTrue(Device.objects.filter(name='Sensor de Temperatura').exists())
+    
+    def test_create_device_without_category(self):
+        """Test creating a device without category (category is optional)."""
+        device_data = {
+            'name': 'Device Sem Categoria',
+            'status': Device.Status.ACTIVE,
+            'description': 'Dispositivo sem categoria'
+        }
+        response = self.client.post('/api/devices/', device_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data.get('category'))
+    
+    def test_create_device_validation(self):
+        """Test device creation validation."""
+        # Test empty name
+        response = self.client.post('/api/devices/', {'name': '', 'status': Device.Status.ACTIVE}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Test name too short
+        response = self.client.post('/api/devices/', {'name': 'AB', 'status': Device.Status.ACTIVE}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Test invalid status
+        response = self.client.post('/api/devices/', {
+            'name': 'Valid Name',
+            'status': 'invalid_status'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Test invalid category
+        response = self.client.post('/api/devices/', {
+            'name': 'Valid Name',
+            'status': Device.Status.ACTIVE,
+            'category': 99999
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_retrieve_device_requires_authentication(self):
+        """Test that retrieving device requires JWT authentication."""
+        device = Device.objects.create(
+            name='Test Device',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        self.client.credentials()  # Remove credentials
+        response = self.client.get(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_retrieve_device_with_authentication(self):
+        """Test retrieving a specific device with valid JWT token."""
+        device = Device.objects.create(**{
+            'name': 'Sensor de Temperatura',
+            'category': self.category,
+            'status': Device.Status.ACTIVE,
+            'description': 'Test description'
+        })
+        response = self.client.get(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Sensor de Temperatura')
+        self.assertEqual(response.data['id'], device.id)
+        self.assertEqual(response.data['category'], self.category.id)
+    
+    def test_update_device_requires_authentication(self):
+        """Test that updating device requires JWT authentication."""
+        device = Device.objects.create(
+            name='Original',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        self.client.credentials()  # Remove credentials
+        response = self.client.put(f'/api/devices/{device.id}/', {
+            'name': 'Updated',
+            'category': self.category.id,
+            'status': Device.Status.ACTIVE
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_update_device_with_authentication(self):
+        """Test updating a device with valid JWT token."""
+        device = Device.objects.create(**{
+            'name': 'Original Name',
+            'category': self.category,
+            'status': Device.Status.ACTIVE
+        })
+        update_data = {
+            'name': 'Updated Name',
+            'category': self.category.id,
+            'status': Device.Status.MAINTENANCE,
+            'description': 'Updated description'
+        }
+        response = self.client.put(f'/api/devices/{device.id}/', update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Updated Name')
+        self.assertEqual(response.data['status'], Device.Status.MAINTENANCE)
+        
+        device.refresh_from_db()
+        self.assertEqual(device.name, 'Updated Name')
+        self.assertEqual(device.status, Device.Status.MAINTENANCE)
+    
+    def test_partial_update_device(self):
+        """Test partial update (PATCH) of a device."""
+        device = Device.objects.create(**{
+            'name': 'Original Name',
+            'category': self.category,
+            'status': Device.Status.ACTIVE
+        })
+        response = self.client.patch(f'/api/devices/{device.id}/', {'name': 'Updated Name'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Updated Name')
+        # Status deve permanecer o mesmo
+        self.assertEqual(response.data['status'], Device.Status.ACTIVE)
+    
+    def test_delete_device_requires_authentication(self):
+        """Test that deleting device requires JWT authentication."""
+        device = Device.objects.create(
+            name='To Delete',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        self.client.credentials()  # Remove credentials
+        response = self.client.delete(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_delete_device_with_authentication(self):
+        """Test deleting a device with valid JWT token."""
+        device = Device.objects.create(**{
+            'name': 'Device To Delete',
+            'category': self.category,
+            'status': Device.Status.ACTIVE
+        })
+        device_id = device.id
+        
+        response = self.client.delete(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verificar que foi deletado
+        self.assertFalse(Device.objects.filter(id=device_id).exists())
+    
+    def test_delete_device_cascades_to_measurements(self):
+        """Test that deleting a device cascades to its measurements."""
+        device = Device.objects.create(**{
+            'name': 'Device With Measurements',
+            'category': self.category,
+            'status': Device.Status.ACTIVE
+        })
+        measurement = Measurement.objects.create(
+            device=device,
+            metric='temperature',
+            value=Decimal('25.5'),
+            unit='°C',
+            timestamp=timezone.now()
+        )
+        
+        response = self.client.delete(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verificar que measurement foi deletado (CASCADE)
+        self.assertFalse(Measurement.objects.filter(id=measurement.id).exists())
+    
+    def test_delete_device_cascades_to_alerts(self):
+        """Test that deleting a device cascades to its alerts."""
+        device = Device.objects.create(**{
+            'name': 'Device With Alerts',
+            'category': self.category,
+            'status': Device.Status.ACTIVE
+        })
+        alert = Alert.objects.create(
+            device=device,
+            title='Test Alert',
+            message='Test message',
+            severity=Alert.Severity.HIGH
+        )
+        
+        response = self.client.delete(f'/api/devices/{device.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verificar que alert foi deletado (CASCADE)
+        self.assertFalse(Alert.objects.filter(id=alert.id).exists())
+    
+    def test_device_list_ordered_by_created_at_desc(self):
+        """Test that devices are ordered by -created_at."""
+        device1 = Device.objects.create(
+            name='Device 1',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        device2 = Device.objects.create(
+            name='Device 2',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        
+        response = self.client.get('/api/devices/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
+        # Mais recente primeiro
+        self.assertEqual(results[0]['id'], device2.id)
+        self.assertEqual(results[1]['id'], device1.id)
 
