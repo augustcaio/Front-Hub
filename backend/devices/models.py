@@ -345,3 +345,101 @@ class Alert(models.Model):
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return f"<Alert: {self.title} (device_id={self.device_id}, status={self.status}, severity={self.severity})>"
+
+
+class MeasurementThreshold(models.Model):
+    """
+    MeasurementThreshold model representing min/max limits for a device metric.
+    
+    Fields:
+        - id: Auto-generated primary key (BigAutoField)
+        - device: Foreign key to Device model
+        - metric_name: Name of the metric this threshold applies to (CharField)
+        - min_limit: Minimum allowed value (DecimalField)
+        - max_limit: Maximum allowed value (DecimalField)
+        - is_active: Whether threshold is active (BooleanField)
+        - created_at: Creation timestamp (DateTimeField)
+        - updated_at: Last update timestamp (DateTimeField)
+    """
+    
+    # Primary key
+    id = models.BigAutoField(primary_key=True)
+    
+    # Device relationship
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        related_name='thresholds',
+        db_index=True,
+        help_text=_('Device this threshold belongs to')
+    )
+    
+    # Metric identification
+    metric_name = models.CharField(
+        max_length=100,
+        db_index=True,
+        help_text=_('Metric name this threshold applies to (e.g., temperature)')
+    )
+    
+    # Limits
+    min_limit = models.DecimalField(
+        max_digits=20,
+        decimal_places=10,
+        help_text=_('Minimum allowed value for the metric')
+    )
+    
+    max_limit = models.DecimalField(
+        max_digits=20,
+        decimal_places=10,
+        help_text=_('Maximum allowed value for the metric')
+    )
+    
+    # Active flag
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text=_('Whether this threshold is active')
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text=_('Threshold creation timestamp')
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        help_text=_('Last update timestamp')
+    )
+    
+    class Meta:
+        db_table: str = 'measurement_thresholds'
+        verbose_name: str = _('Measurement Threshold')
+        verbose_name_plural: str = _('Measurement Thresholds')
+        ordering: list[str] = ['metric_name']
+        indexes: list[models.Index] = [
+            models.Index(fields=['device', 'metric_name'], name='thresh_device_metric_idx'),
+            models.Index(fields=['is_active'], name='thresh_is_active_idx'),
+            models.Index(fields=['created_at'], name='thresh_created_at_idx'),
+        ]
+        constraints = [
+            # Ensure only one ACTIVE threshold per device/metric pair
+            models.UniqueConstraint(
+                fields=['device', 'metric_name'],
+                condition=models.Q(('is_active', True)),
+                name='unique_active_threshold_per_device_metric',
+            )
+        ]
+    
+    def __str__(self) -> str:
+        """Return string representation of MeasurementThreshold."""
+        return f"{self.metric_name} min={self.min_limit} max={self.max_limit} @ {self.device.name}"
+    
+    def __repr__(self) -> str:
+        """Return developer-friendly representation."""
+        return (
+            f"<MeasurementThreshold: metric={self.metric_name} min={self.min_limit} "
+            f"max={self.max_limit} active={self.is_active} device_id={self.device_id}>"
+        )
