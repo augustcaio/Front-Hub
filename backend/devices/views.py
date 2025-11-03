@@ -79,10 +79,8 @@ class DeviceViewSet(viewsets.ModelViewSet):
         
         return queryset
 
+    # Fase pausada: sem restrição adicional por role no delete
     def destroy(self, request, *args, **kwargs):
-        user = request.user
-        if not (user and user.is_authenticated and getattr(user, 'role', None) == 'admin'):
-            return Response({'detail': 'Forbidden: only admin can delete devices.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
 

@@ -4,7 +4,8 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 class IsAdminUserRole(BasePermission):
     def has_permission(self, request, view) -> bool:
         user = request.user
-        return bool(user and user.is_authenticated and getattr(user, 'role', None) == 'admin')
+        # Fase pausada: considerar apenas autenticação, ignorar role
+        return bool(user and user.is_authenticated)
 
 
 class IsOperatorOrAdminCanWriteElseReadOnly(BasePermission):
@@ -12,8 +13,8 @@ class IsOperatorOrAdminCanWriteElseReadOnly(BasePermission):
         user = request.user
         if request.method in SAFE_METHODS:
             return bool(user and user.is_authenticated)
-        # Métodos de escrita: apenas admin ou operator
-        return bool(user and user.is_authenticated and getattr(user, 'role', None) in ('admin', 'operator'))
+        # Fase pausada: permitir escrita para qualquer usuário autenticado
+        return bool(user and user.is_authenticated)
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -21,6 +22,7 @@ class IsAdminOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         user = request.user
-        return bool(user and user.is_authenticated and getattr(user, 'role', None) == 'admin')
+        # Fase pausada: permitir métodos de escrita a usuários autenticados
+        return bool(user and user.is_authenticated)
 
 

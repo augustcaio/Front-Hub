@@ -21,8 +21,6 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CategoryService, Category } from '../../core/services/category.service';
-import { AuthService } from '../../core/services/auth.service';
-import { Observable, map, startWith } from 'rxjs';
 import { formatDateTime } from '../../core/utils/date.utils';
 
 @Component({
@@ -54,7 +52,6 @@ export class CategoriesListComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
-  private readonly auth = inject(AuthService);
 
   loading = true;
   error: string | null = null;
@@ -62,10 +59,6 @@ export class CategoriesListComponent implements OnInit {
   totalRecords = 0;
   first = 0;
   rows = 20;
-  isAdmin$: Observable<boolean> = this.auth.role$.pipe(
-    startWith(localStorage.getItem('user_role') as any),
-    map((role) => role === 'admin')
-  );
 
   searchText = '';
 

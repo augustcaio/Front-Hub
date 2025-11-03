@@ -33,8 +33,7 @@ export const routes: Routes = [
       },
       {
         path: 'categories',
-        loadChildren: () => import('./pages/categories/categories.routes').then(m => m.routes),
-        canActivate: [() => import('./core/guards/role.guard').then(m => m.roleGuard(['admin']))]
+        loadChildren: () => import('./pages/categories/categories.routes').then(m => m.routes)
       },
       {
         path: 'account/details',

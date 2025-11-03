@@ -129,7 +129,7 @@
           [label]="isEditMode ? ('common.update' | translate) : ('common.create' | translate)"
           [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
           [loading]="loading"
-          [disabled]="deviceForm.invalid || loading || !(isAdmin$ | async)"
+          [disabled]="deviceForm.invalid || loading"
           [styleClass]="'p-button-primary'">
         </p-button>
       </div>

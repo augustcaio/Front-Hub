@@ -23,8 +23,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DeviceService, Device, DeviceListResponse, Category } from '../../core/services/device.service';
-import { AuthService } from '../../core/services/auth.service';
-import { Observable, map, startWith } from 'rxjs';
 import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
 import { formatDateTime } from '../../core/utils/date.utils';
 
@@ -64,7 +62,6 @@ export class DevicesListComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
-  private readonly auth = inject(AuthService);
 
   loading = true;
   error: string | null = null;
@@ -72,10 +69,6 @@ export class DevicesListComponent implements OnInit {
   totalRecords = 0;
   first = 0;
   rows = 20;
-  isAdmin$: Observable<boolean> = this.auth.role$.pipe(
-    startWith(localStorage.getItem('user_role') as any),
-    map((role) => role === 'admin')
-  );
 
   searchText = '';
   selectedStatus: string | null = null;
