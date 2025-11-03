@@ -25,8 +25,7 @@ import {
   Category,
   CategoryCreateRequest,
 } from '../../core/services/category.service';
-import { AuthService } from '../../core/services/auth.service';
-import { Observable, map, startWith } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-category-form',
@@ -52,7 +51,6 @@ export class CategoryFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly translate = inject(TranslateService);
-  private readonly auth = inject(AuthService);
 
   readonly categoryForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
@@ -64,10 +62,6 @@ export class CategoryFormComponent implements OnInit {
   successMessage: string | null = null;
   isEditMode = false;
   categoryId: number | null = null;
-  isAdmin$: Observable<boolean> = this.auth.role$.pipe(
-    startWith(localStorage.getItem('user_role') as any),
-    map((role) => role === 'admin')
-  );
 
   get name() {
     return this.categoryForm.get('name');

@@ -78,7 +78,6 @@
             icon="pi pi-plus"
             [styleClass]="'p-button-primary w-full'"
             routerLink="/devices/new"
-            [disabled]="!(isAdmin$ | async)"
           >
           </p-button>
         </div>
@@ -248,7 +247,6 @@
                   (click)="confirmDelete(device)"
                   [pTooltip]="'common.delete' | translate"
                   tooltipPosition="top"
-                  [disabled]="!(isAdmin$ | async)"
                 >
                 </p-button>
               </div>
