@@ -16,8 +16,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
 
-from .models import Category, Device, Measurement, Alert
-from .serializers import CategorySerializer, DeviceSerializer, MeasurementSerializer, AlertSerializer
+from .models import Category, Device, Measurement, Alert, MeasurementThreshold
+from .serializers import CategorySerializer, DeviceSerializer, MeasurementSerializer, AlertSerializer, ThresholdSerializer
 from .filters import DeviceFilter, AlertFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -309,3 +309,29 @@ class DeviceMetricsView(APIView):
         metrics = Measurement.objects.filter(device=device).values_list('metric', flat=True).distinct().order_by('metric')
         
         return Response({'metrics': list(metrics)}, status=status.HTTP_200_OK)
+
+
+class ThresholdViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for MeasurementThreshold model nested under a Device by public_id.
+    
+    Endpoints:
+    - /api/devices/<public_id>/thresholds/ [GET, POST]
+    - /api/devices/<public_id>/thresholds/<pk>/ [GET, PUT, PATCH, DELETE]
+    """
+    serializer_class = ThresholdSerializer
+    permission_classes: list = [IsAuthenticated]
+    ordering_fields = ['metric_name', 'created_at', 'updated_at']
+    ordering = ['metric_name']
+
+    def _get_device(self) -> Device:
+        public_id = self.kwargs.get('public_id')
+        return get_object_or_404(Device, public_id=public_id)
+
+    def get_queryset(self):
+        device = self._get_device()
+        return MeasurementThreshold.objects.filter(device=device).order_by(*self.ordering)
+
+    def perform_create(self, serializer: ThresholdSerializer) -> None:
+        device = self._get_device()
+        serializer.save(device=device)

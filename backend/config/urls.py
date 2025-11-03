@@ -15,7 +15,7 @@ from rest_framework_simplejwt.views import (
 )
 from accounts.serializers import CustomTokenObtainPairSerializer
 from accounts.views import register_user, get_current_user
-from devices.views import CategoryViewSet, DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, DeviceMetricsView, AlertViewSet
+from devices.views import CategoryViewSet, DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, DeviceMetricsView, AlertViewSet, ThresholdViewSet
 from typing import List
 
 # DRF Router configuration
@@ -49,6 +49,10 @@ urlpatterns: List = [
     
     # Available metrics endpoint
     path('api/devices/<int:device_id>/metrics/', DeviceMetricsView.as_view(), name='device_metrics'),
+
+    # Thresholds nested under device by public_id
+    path('api/devices/<uuid:public_id>/thresholds/', ThresholdViewSet.as_view({'get': 'list', 'post': 'create'}), name='device_thresholds'),
+    path('api/devices/<uuid:public_id>/thresholds/<int:pk>/', ThresholdViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='device_threshold_detail'),
 ]
 
 # Servir arquivos estáticos e media em desenvolvimento

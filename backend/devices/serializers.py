@@ -7,7 +7,7 @@ Following Django REST Framework best practices:
 """
 from rest_framework import serializers
 from django.utils import timezone
-from .models import Category, Device, Measurement, Alert
+from .models import Category, Device, Measurement, Alert, MeasurementThreshold
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -230,3 +230,45 @@ class AlertSerializer(serializers.ModelSerializer):
             validated_data['resolved_at'] = None
         
         return super().update(instance, validated_data)
+
+
+class ThresholdSerializer(serializers.ModelSerializer):
+    """
+    Serializer for MeasurementThreshold model.
+    
+    Handles validation for metric thresholds per device/metric pair.
+    """
+    class Meta:
+        model = MeasurementThreshold
+        fields: list[str] = [
+            'id',
+            'device',
+            'metric_name',
+            'min_limit',
+            'max_limit',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields: list[str] = [
+            'id',
+            'created_at',
+            'updated_at',
+        ]
+
+    def validate_metric_name(self, value: str) -> str:
+        if not value or not value.strip():
+            raise serializers.ValidationError("Metric name cannot be empty.")
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError("Metric name must be at least 2 characters long.")
+        return value.strip()
+
+    def validate(self, attrs: dict) -> dict:
+        min_limit = attrs.get('min_limit', getattr(self.instance, 'min_limit', None))
+        max_limit = attrs.get('max_limit', getattr(self.instance, 'max_limit', None))
+        if min_limit is not None and max_limit is not None and min_limit > max_limit:
+            raise serializers.ValidationError({
+                'min_limit': 'min_limit must be less than or equal to max_limit',
+                'max_limit': 'max_limit must be greater than or equal to min_limit',
+            })
+        return attrs
