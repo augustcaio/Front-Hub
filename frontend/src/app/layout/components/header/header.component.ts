@@ -58,7 +58,7 @@ export class HeaderComponent implements OnInit {
   }
 
   private updateMenuItems(): void {
-    this.translate.get(['menu.dashboard', 'menu.devices']).subscribe(translations => {
+    this.translate.get(['menu.dashboard', 'menu.devices', 'menu.categories']).subscribe(translations => {
       this.menuItems = [
         {
           label: translations['menu.dashboard'],
@@ -69,6 +69,11 @@ export class HeaderComponent implements OnInit {
           label: translations['menu.devices'],
           icon: 'pi pi-desktop',
           routerLink: '/devices'
+        },
+        {
+          label: translations['menu.categories'],
+          icon: 'pi pi-tags',
+          routerLink: '/categories'
         }
       ];
       this.cdr.markForCheck();

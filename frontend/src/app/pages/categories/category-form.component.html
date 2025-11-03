@@ -1,0 +1,98 @@
+<div class="p-4 max-w-[800px] mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+      {{ (isEditMode ? 'categories.editCategory' : 'categories.newCategory') | translate }}
+    </h1>
+    <p class="m-0 text-[var(--text-color-secondary)]">
+      {{ (isEditMode ? 'categories.editDescription' : 'categories.createDescription') | translate }}
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading && isEditMode && !categoryForm.value.name" class="flex flex-col items-center justify-center p-12 text-center">
+    <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+    <p class="mt-4 text-[var(--text-color-secondary)]">{{ 'categories.loadingCategory' | translate }}</p>
+  </div>
+
+  <!-- Form -->
+  <p-card *ngIf="!loading || categoryForm.value.name">
+    <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-4">
+        <p-message severity="error" [text]="errorMessage"></p-message>
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="mb-4">
+        <p-message severity="success" [text]="successMessage"></p-message>
+      </div>
+
+      <!-- Name Field -->
+      <div class="mb-4">
+        <label for="name" class="block mb-2 font-semibold text-[var(--text-color)]">
+          {{ 'categories.name' | translate }}
+          <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          pInputText
+          formControlName="name"
+          [placeholder]="'categories.enterName' | translate"
+          class="w-full"
+          [class.ng-invalid]="name?.invalid && name?.touched"
+        />
+        <small *ngIf="name?.invalid && name?.touched" class="text-red-500 block mt-1">
+          <span *ngIf="name?.errors?.['required']">{{ 'categories.nameRequired' | translate }}</span>
+          <span *ngIf="name?.errors?.['minlength']">{{ 'categories.nameMinLength' | translate }}</span>
+          <span *ngIf="name?.errors?.['maxlength']">{{ 'categories.nameMaxLength' | translate }}</span>
+        </small>
+      </div>
+
+      <!-- Description Field -->
+      <div class="mb-4">
+        <label for="description" class="block mb-2 font-semibold text-[var(--text-color)]">
+          {{ 'categories.description' | translate }}
+          <span class="text-[var(--text-color-secondary)] text-sm font-normal">({{ 'common.optional' | translate }})</span>
+        </label>
+        <textarea
+          id="description"
+          pInputTextarea
+          formControlName="description"
+          [placeholder]="'categories.descriptionPlaceholder' | translate"
+          [rows]="4"
+          class="w-full"
+          [class.ng-invalid]="description?.invalid && description?.touched"
+        ></textarea>
+        <small *ngIf="description?.invalid && description?.touched" class="text-red-500 block mt-1">
+          <span *ngIf="description?.errors?.['maxlength']">{{ 'categories.descriptionMaxLength' | translate }}</span>
+        </small>
+        <small class="text-[var(--text-color-secondary)] block mt-1">
+          {{ 'categories.descriptionOptional' | translate }}
+        </small>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex gap-2 justify-end mt-6">
+        <p-button
+          type="button"
+          [label]="'common.cancel' | translate"
+          icon="pi pi-times"
+          [styleClass]="'p-button-outlined'"
+          (click)="onCancel()"
+          [disabled]="loading">
+        </p-button>
+        <p-button
+          type="submit"
+          [label]="(isEditMode ? 'common.update' : 'common.create') | translate"
+          icon="pi pi-check"
+          [styleClass]="'p-button-primary'"
+          [loading]="loading"
+          [disabled]="categoryForm.invalid || loading">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+</div>
+

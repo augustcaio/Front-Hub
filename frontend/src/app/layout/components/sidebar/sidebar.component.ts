@@ -41,6 +41,14 @@ export class SidebarComponent {
       command: () => {
         this.sidebarVisible = false;
       }
+    },
+    {
+      label: 'Categorias',
+      icon: 'pi pi-tags',
+      routerLink: '/categories',
+      command: () => {
+        this.sidebarVisible = false;
+      }
     }
   ];
 
