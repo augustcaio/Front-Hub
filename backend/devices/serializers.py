@@ -23,6 +23,7 @@ class DeviceSerializer(serializers.ModelSerializer):
             'id',
             'public_id',
             'name',
+            'category',
             'status',
             'description',
             'created_at',

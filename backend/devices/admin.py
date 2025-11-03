@@ -1,5 +1,28 @@
 from django.contrib import admin
-from .models import Device, Measurement, Alert
+from .models import Category, Device, Measurement, Alert
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Category model.
+    """
+    list_display: list[str] = ['id', 'name', 'created_at', 'updated_at']
+    list_filter: list[str] = ['created_at']
+    search_fields: list[str] = ['name', 'description']
+    readonly_fields: list[str] = ['id', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('name', 'description')
+        }),
+        ('Identificador', {
+            'fields': ('id',)
+        }),
+        ('Datas', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
 
 
 @admin.register(Device)
@@ -7,14 +30,14 @@ class DeviceAdmin(admin.ModelAdmin):
     """
     Admin configuration for Device model.
     """
-    list_display: list[str] = ['public_id', 'name', 'status', 'created_at', 'updated_at']
-    list_filter: list[str] = ['status', 'created_at']
-    search_fields: list[str] = ['name', 'public_id']
+    list_display: list[str] = ['public_id', 'name', 'category', 'status', 'created_at', 'updated_at']
+    list_filter: list[str] = ['status', 'category', 'created_at']
+    search_fields: list[str] = ['name', 'public_id', 'category__name']
     readonly_fields: list[str] = ['public_id', 'id', 'created_at', 'updated_at']
     
     fieldsets = (
         ('Informações Básicas', {
-            'fields': ('name', 'status', 'description')
+            'fields': ('name', 'category', 'status', 'description')
         }),
         ('Identificadores', {
             'fields': ('id', 'public_id')
@@ -23,6 +46,11 @@ class DeviceAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at')
         }),
     )
+    
+    def get_queryset(self, request):
+        """Optimize queryset with select_related to avoid N+1 queries."""
+        qs = super().get_queryset(request)
+        return qs.select_related('category')
 
 
 @admin.register(Measurement)

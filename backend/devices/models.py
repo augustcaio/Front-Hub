@@ -9,6 +9,67 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
+class Category(models.Model):
+    """
+    Category model representing device categories.
+    
+    Fields:
+        - id: Auto-generated primary key (BigAutoField)
+        - name: Category name (CharField)
+        - description: Optional category description (TextField)
+        - created_at: Creation timestamp (DateTimeField)
+        - updated_at: Last update timestamp (DateTimeField)
+    """
+    
+    # Primary key
+    id = models.BigAutoField(primary_key=True)
+    
+    # Category information
+    name = models.CharField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        help_text=_('Category name')
+    )
+    
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text=_('Optional category description')
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text=_('Category creation timestamp')
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        help_text=_('Last update timestamp')
+    )
+    
+    class Meta:
+        db_table: str = 'categories'
+        verbose_name: str = _('Category')
+        verbose_name_plural: str = _('Categories')
+        ordering: list[str] = ['name']
+        indexes: list[models.Index] = [
+            models.Index(fields=['name'], name='category_name_idx'),
+            models.Index(fields=['created_at'], name='category_created_at_idx'),
+        ]
+    
+    def __str__(self) -> str:
+        """Return string representation of Category."""
+        return self.name
+    
+    def __repr__(self) -> str:
+        """Return developer-friendly representation."""
+        return f"<Category: {self.name} (id={self.id})>"
+
+
 class Device(models.Model):
     """
     Device model representing IoT devices or sensors.
@@ -62,6 +123,17 @@ class Device(models.Model):
         help_text=_('Optional device description')
     )
     
+    # Category relationship (ForeignKey with PROTECT on delete to prevent accidental category deletion)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name='devices',
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text=_('Category this device belongs to')
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -84,6 +156,8 @@ class Device(models.Model):
             models.Index(fields=['public_id'], name='device_public_id_idx'),
             models.Index(fields=['status'], name='device_status_idx'),
             models.Index(fields=['created_at'], name='device_created_at_idx'),
+            models.Index(fields=['category'], name='device_category_idx'),
+            models.Index(fields=['category', 'status'], name='device_category_status_idx'),
         ]
     
     def __str__(self) -> str:
@@ -92,7 +166,7 @@ class Device(models.Model):
     
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
-        return f"<Device: {self.name} (status={self.status}, public_id={self.public_id})>"
+        return f"<Device: {self.name} (status={self.status}, public_id={self.public_id}, category_id={self.category_id})>"
 
 
 class Measurement(models.Model):
