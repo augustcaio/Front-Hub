@@ -57,6 +57,50 @@ Write-Host "  Status dos Containers" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 docker-compose ps
 
+Write-Host "" 
+Write-Host "Aplicando migrações e semeando dados de demonstração..." -ForegroundColor Yellow
+
+# Função auxiliar para executar comandos no container do backend com retries
+function Invoke-BackendCmd {
+    param (
+        [string]$Cmd,
+        [int]$Retries = 12,
+        [int]$DelaySeconds = 5
+    )
+    for ($i = 1; $i -le $Retries; $i++) {
+        try {
+            docker-compose exec -T backend sh -c $Cmd 2>$null
+            if ($LASTEXITCODE -eq 0) { return $true }
+        } catch {
+            # Ignorar e tentar novamente
+        }
+        Start-Sleep -Seconds $DelaySeconds
+    }
+    return $false
+}
+
+# Tentar migrações até sucesso
+$migrated = Invoke-BackendCmd -Cmd "python manage.py migrate --noinput"
+if (-not $migrated) {
+    Write-Host "❌ Falha ao aplicar migrações no backend." -ForegroundColor Red
+} else {
+    Write-Host "✅ Migrações aplicadas." -ForegroundColor Green
+}
+
+# Criar/atualizar superusuário padrão (idempotente)
+$createdAdmin = Invoke-BackendCmd -Cmd "python backend/create_superuser.py"
+if ($createdAdmin) {
+    Write-Host "✅ Superusuário verificado/criado." -ForegroundColor Green
+}
+
+# Semear 10 dispositivos fakes + medições + alertas (idempotente)
+$seeded = Invoke-BackendCmd -Cmd "python manage.py seed_demo_data --devices 10 --with-measurements --with-alerts"
+if ($seeded) {
+    Write-Host "✅ Dados de demonstração criados." -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Não foi possível semear dados agora. Verifique logs do backend e rode manualmente: docker-compose exec backend python manage.py seed_demo_data --devices 10 --with-measurements --with-alerts" -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host "  Serviços Disponíveis" -ForegroundColor Green
