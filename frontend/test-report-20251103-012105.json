@@ -1,0 +1,247 @@
+﻿{
+    "Tests":  [
+                  {
+                      "Message":  "Docker version 28.5.1, build e180ab8",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663117)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Docker instalado",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663309)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Container Backend rodando",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663310)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Container Frontend rodando",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663312)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Container PostgreSQL rodando",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663313)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Container Redis rodando",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "O servidor remoto retornou um erro: (401) Não Autorizado.",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663362)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Backend acessivel",
+                      "Passed":  false
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143663385)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:03"
+                                    },
+                      "Name":  "Frontend acessivel",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "Creating test database for alias \u0027default\u0027 (\u0027test_front_hub_db\u0027)...",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664506)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "Testes do Backend",
+                      "Passed":  false
+                  },
+                  {
+                      "Message":  "npm warn \"production\" is being parsed as a normal command line argument.",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664649)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "Build do Frontend",
+                      "Passed":  false
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664843)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "Login - Obter token JWT",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664861)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "Token Refresh",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664879)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "GET /api/me/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664899)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "GET /api/devices/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664966)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "POST /api/devices/ - Criar dispositivo",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143664984)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:04"
+                                    },
+                      "Name":  "GET /api/devices/{id}/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665047)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "PATCH /api/devices/{id}/ - Atualizar dispositivo",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665066)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/devices/?status=active - Filtro por status",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665085)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/devices/?search=test - Busca",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665112)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/devices/{id}/aggregated-data/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665128)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/devices/{id}/metrics/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665148)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "DELETE /api/devices/{id}/ - Deletar dispositivo",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665165)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/alerts/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665180)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "GET /api/categories/",
+                      "Passed":  true
+                  },
+                  {
+                      "Message":  "Testes de WebSocket devem ser executados manualmente",
+                      "Timestamp":  {
+                                        "value":  "\/Date(1762143665185)\/",
+                                        "DisplayHint":  2,
+                                        "DateTime":  "segunda-feira, 3 de novembro de 2025 01:21:05"
+                                    },
+                      "Name":  "Testes WebSocket",
+                      "Passed":  true
+                  }
+              ],
+    "Skipped":  0,
+    "Failed":  3,
+    "Passed":  21
+}

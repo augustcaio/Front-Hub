@@ -14,6 +14,7 @@ Sistema de gerenciamento e monitoramento de dispositivos IoT em tempo real, com 
 - [Capturas de Tela](#capturas-de-tela)
 - [Comandos Úteis](#comandos-úteis)
 - [Troubleshooting](#troubleshooting)
+- [Testes](#testes)
 - [CI/CD (GitHub Actions)](#cicd-github-actions)
 
 ## 🎯 Sobre o Projeto
@@ -1123,6 +1124,29 @@ A API REST segue padrões RESTful:
 
 ## 🧪 Testes
 
+### Testes End-to-End
+
+Para executar testes completos de ponta a ponta da aplicação:
+
+```powershell
+# Executar todos os testes
+.\test-e2e.ps1
+
+# Executar apenas testes da API (mais rápido)
+.\test-e2e.ps1 -SkipBackendTests -SkipFrontendTests
+```
+
+O script de teste E2E verifica:
+- ✅ Ambiente e containers Docker
+- ✅ Testes do backend (Django)
+- ✅ Build do frontend (Angular)
+- ✅ Endpoints da API REST (CRUD completo)
+- ✅ Autenticação e autorização
+- ✅ Filtros, busca e paginação
+- ✅ Dados agregados e métricas
+
+**📚 Documentação completa**: Consulte [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md)
+
 ### Estrutura de Testes
 
 - **Backend**: 81+ testes unitários e de integração
@@ -1155,10 +1179,20 @@ cd frontend && npm test
 
 ### Scripts Úteis
 
+#### Scripts de Teste
+- `test-e2e.ps1` - Script PowerShell para testes end-to-end completos
+- `test-e2e.sh` - Script Bash para testes end-to-end (Linux/Mac)
+- `backend/test_websocket.py` - Testa conexão WebSocket
+
+#### Scripts de Configuração
 - `backend/init_db.py` - Inicializa banco com dados de teste
 - `backend/create_test_devices.py` - Cria dispositivos de exemplo
-- `backend/test_websocket.py` - Testa conexão WebSocket
 - `backend/generate_secret_key.py` - Gera SECRET_KEY seguro
+
+#### Scripts Docker
+- `docker-up.ps1` - Inicia toda a stack
+- `docker-down.ps1` - Para todos os containers
+- `docker-logs.ps1` - Visualiza logs dos containers
 
 ## 🔄 CI/CD (GitHub Actions)
 
