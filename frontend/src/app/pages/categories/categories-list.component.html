@@ -158,16 +158,18 @@
             <td class="p-table-spacing">
               <div class="flex gap-1.5 md:gap-3">
                 <p-button
-                  [label]="'common.edit' | translate"
                   icon="pi pi-pencil"
                   [styleClass]="'p-button-outlined p-button-sm'"
-                  [routerLink]="['/categories', category.id, 'edit']">
+                  [routerLink]="['/categories', category.id, 'edit']"
+                  [pTooltip]="'common.edit' | translate"
+                  tooltipPosition="top">
                 </p-button>
                 <p-button
-                  [label]="'common.delete' | translate"
                   icon="pi pi-trash"
                   [styleClass]="'p-button-danger p-button-outlined p-button-sm'"
-                  (click)="confirmDelete(category)">
+                  (click)="confirmDelete(category)"
+                  [pTooltip]="'common.delete' | translate"
+                  tooltipPosition="top">
                 </p-button>
               </div>
             </td>
