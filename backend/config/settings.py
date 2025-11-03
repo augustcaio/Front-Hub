@@ -238,6 +238,8 @@ CORS_ALLOW_HEADERS: List[str] = [
 # Django Channels Configuration
 # https://channels.readthedocs.io/en/stable/topics/channel_layers.html
 
+# Usa Redis como Channel Layer para escalabilidade de WebSockets
+# Em desenvolvimento local sem Docker, use 'localhost', no Docker use 'redis'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': config(
@@ -247,10 +249,13 @@ CHANNEL_LAYERS = {
         'CONFIG': {
             "hosts": [
                 (
-                    config('REDIS_HOST', default='localhost'),
+                    config('REDIS_HOST', default='redis'),
                     config('REDIS_PORT', default=6379, cast=int)
                 )
             ],
+            # Configurações adicionais para melhor performance
+            "capacity": 1500,  # Número máximo de mensagens em um canal
+            "expiry": 10,  # Tempo de expiração das mensagens em segundos
         },
     },
 }

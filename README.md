@@ -64,12 +64,15 @@ O Front-Hub segue uma arquitetura de três camadas:
 │   └──────────────────────┬───────────────────────────┘   │
 └────────────────────────────┼───────────────────────────────┘
                              │
-                             │ PostgreSQL
-                             │
-                  ┌──────────▼──────────┐
-                  │   PostgreSQL 14      │
-                  │   Porta 5432         │
-                  └──────────────────────┘
+                ┌────────────┼────────────┐
+                │            │            │
+                │   PostgreSQL│  Redis     │
+                │            │            │
+      ┌─────────▼─────┐  ┌──▼──────────┐
+      │  PostgreSQL 14 │  │  Redis 7     │
+      │  Porta 5432    │  │  Porta 6379  │
+      └────────────────┘  └─────────────┘
+                      (DB)  (Channel Layer)
 ```
 
 ### Fluxo de Dados
@@ -82,14 +85,17 @@ O Front-Hub segue uma arquitetura de três camadas:
 ## 🚀 Tecnologias
 
 ### Backend
+
 - **Django 4.2+**: Framework web Python
 - **Django REST Framework**: API REST
 - **Django Channels**: Suporte a WebSockets
 - **PostgreSQL**: Banco de dados relacional
+- **Redis**: Channel Layer para escalabilidade de WebSockets
 - **JWT (Simple JWT)**: Autenticação baseada em tokens
 - **Daphne**: Servidor ASGI para WebSockets
 
 ### Frontend
+
 - **Angular 15**: Framework web TypeScript
 - **PrimeNG**: Componentes UI
 - **Chart.js**: Gráficos e visualizações
@@ -97,6 +103,7 @@ O Front-Hub segue uma arquitetura de três camadas:
 - **RxJS**: Programação reativa
 
 ### DevOps
+
 - **Docker**: Containerização
 - **Docker Compose**: Orquestração de containers
 - **Nginx**: Servidor web para frontend (produção)
@@ -200,6 +207,7 @@ docker-compose --version
 O Front-Hub pode ser executado rapidamente usando Docker Compose. Siga estes passos simples:
 
 **Windows (PowerShell):**
+
 ```powershell
 # 1. Clone o repositório
 git clone <url-do-repositorio>
@@ -213,6 +221,7 @@ cd Front-Hub
 ```
 
 **Linux/Mac:**
+
 ```bash
 # 1. Clone o repositório
 git clone <url-do-repositorio>
@@ -240,12 +249,14 @@ cd Front-Hub
 O arquivo `.env` será criado automaticamente pelo script `docker-up.ps1` (Windows). No Linux/Mac, crie manualmente:
 
 **Windows (PowerShell):**
+
 ```powershell
 .\docker-up.ps1
 # O script pergunta se deseja criar/atualizar o .env automaticamente
 ```
 
 **Linux/Mac:**
+
 ```bash
 # Criar arquivo .env manualmente
 cat > .env << EOF
@@ -273,6 +284,7 @@ EOF
 #### 3. Executar com Docker Compose
 
 **Windows (PowerShell):**
+
 ```powershell
 # Opção 1: Usar script automatizado
 .\docker-up.ps1
@@ -282,6 +294,7 @@ docker-compose up --build -d
 ```
 
 **Linux/Mac:**
+
 ```bash
 # Subir todos os serviços em background
 docker-compose up --build -d
@@ -298,12 +311,15 @@ Aguarde cerca de 30-60 segundos para todos os serviços iniciarem, depois verifi
 docker-compose ps
 ```
 
-Você deve ver três containers com status `Up (healthy)`:
+Você deve ver quatro containers com status `Up (healthy)`:
+
 - ✅ `front_hub_db` (PostgreSQL)
+- ✅ `front_hub_redis` (Redis)
 - ✅ `front_hub_backend` (Django/Daphne)
 - ✅ `front_hub_frontend` (Angular/Nginx)
 
 **Verificar logs se necessário:**
+
 ```bash
 # Todos os logs
 docker-compose logs -f
@@ -318,12 +334,12 @@ docker-compose logs -f db
 
 Após os containers iniciarem completamente:
 
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| **Frontend** | http://localhost:4200 | Interface principal da aplicação |
-| **Backend API** | http://localhost:8000/api/ | API REST do backend |
-| **API Docs** | http://localhost:8000/api/ | Documentação interativa da API |
-| **Admin Django** | http://localhost:8000/admin/ | Painel administrativo Django |
+| Serviço          | URL                          | Descrição                        |
+| ---------------- | ---------------------------- | -------------------------------- |
+| **Frontend**     | http://localhost:4200        | Interface principal da aplicação |
+| **Backend API**  | http://localhost:8000/api/   | API REST do backend              |
+| **API Docs**     | http://localhost:8000/api/   | Documentação interativa da API   |
+| **Admin Django** | http://localhost:8000/admin/ | Painel administrativo Django     |
 
 #### 6. Credenciais Padrão
 
@@ -332,7 +348,8 @@ O banco de dados é inicializado automaticamente com um usuário administrador:
 - **Username**: `admin`
 - **Password**: `admin123`
 
-**⚠️ IMPORTANTE**: 
+**⚠️ IMPORTANTE**:
+
 - **NÃO** use essas credenciais em produção!
 - Altere imediatamente após a primeira execução
 - Para criar um novo superusuário:
@@ -374,8 +391,8 @@ JWT_REFRESH_TOKEN_LIFETIME=86400   # 24 horas em segundos
 # Frontend
 FRONTEND_PORT=4200
 
-# Redis (opcional, para produção)
-REDIS_HOST=localhost
+# Redis (Channel Layer para WebSockets)
+REDIS_HOST=redis  # Use 'redis' no Docker, 'localhost' em desenvolvimento local
 REDIS_PORT=6379
 ```
 
@@ -434,6 +451,7 @@ backend/
 ```
 
 **Principais Endpoints da API:**
+
 - `/api/token/` - Obter JWT token (login)
 - `/api/token/refresh/` - Renovar access token
 - `/api/token/verify/` - Verificar token
@@ -554,9 +572,10 @@ Para adicionar suas próprias capturas de tela:
 #### 1. Tela de Login
 
 ![Login Screen](docs/screenshots/login.png)
-*Tela de login com autenticação JWT. Permite acesso seguro à aplicação.*
+_Tela de login com autenticação JWT. Permite acesso seguro à aplicação._
 
 **Funcionalidades:**
+
 - Validação de credenciais em tempo real
 - Mensagens de erro claras
 - Link para registro de novos usuários
@@ -565,9 +584,10 @@ Para adicionar suas próprias capturas de tela:
 #### 2. Tela de Registro
 
 ![Register Screen](docs/screenshots/register.png)
-*Formulário de registro de novos usuários. Após registro, o usuário é autenticado automaticamente.*
+_Formulário de registro de novos usuários. Após registro, o usuário é autenticado automaticamente._
 
 **Funcionalidades:**
+
 - Validação de formulário reativo
 - Validação de formato de username
 - Verificação de correspondência de senhas
@@ -577,9 +597,10 @@ Para adicionar suas próprias capturas de tela:
 #### 3. Dashboard Principal
 
 ![Dashboard](docs/screenshots/dashboard.png)
-*Dashboard com visão geral dos dispositivos e estatísticas em tempo real.*
+_Dashboard com visão geral dos dispositivos e estatísticas em tempo real._
 
 **Funcionalidades:**
+
 - Cards com estatísticas (Total, Ativos, Inativos, etc.)
 - Lista de dispositivos recentes
 - Lista de alertas pendentes
@@ -589,9 +610,10 @@ Para adicionar suas próprias capturas de tela:
 #### 4. Lista de Dispositivos
 
 ![Devices List](docs/screenshots/devices-list.png)
-*Lista completa de dispositivos com filtros, busca e paginação.*
+_Lista completa de dispositivos com filtros, busca e paginação._
 
 **Funcionalidades:**
+
 - Busca por nome
 - Filtro por status (Ativo, Inativo, Manutenção, Erro)
 - Filtro por categoria
@@ -602,9 +624,10 @@ Para adicionar suas próprias capturas de tela:
 #### 5. Formulário de Dispositivo
 
 ![Device Form](docs/screenshots/device-form.png)
-*Formulário para cadastro e edição de dispositivos com validações.*
+_Formulário para cadastro e edição de dispositivos com validações._
 
 **Funcionalidades:**
+
 - Campos: Nome, Status, Descrição, Categoria
 - Validação em tempo real
 - Dropdown de categorias carregado dinamicamente
@@ -614,9 +637,10 @@ Para adicionar suas próprias capturas de tela:
 #### 6. Detalhes do Dispositivo
 
 ![Device Detail](docs/screenshots/device-detail.png)
-*Página de detalhes com gráficos em tempo real via WebSocket.*
+_Página de detalhes com gráficos em tempo real via WebSocket._
 
 **Funcionalidades:**
+
 - Informações do dispositivo
 - Gráfico de medições em tempo real (Chart.js)
 - Estatísticas agregadas (média, máximo, mínimo)
@@ -627,9 +651,10 @@ Para adicionar suas próprias capturas de tela:
 #### 7. Painel de Alertas
 
 ![Alerts](docs/screenshots/alerts.png)
-*Visualização de alertas e notificações do sistema.*
+_Visualização de alertas e notificações do sistema._
 
 **Funcionalidades:**
+
 - Filtro por dispositivo
 - Filtro por severidade (High, Medium, Low)
 - Filtro por status (Pending, Resolved)
@@ -638,9 +663,10 @@ Para adicionar suas próprias capturas de tela:
 #### 8. Detalhes da Conta
 
 ![Account Details](docs/screenshots/account-details.png)
-*Informações do usuário logado e opção de logout.*
+_Informações do usuário logado e opção de logout._
 
 **Funcionalidades:**
+
 - Exibição de dados do usuário
 - Data de criação da conta
 - Último login
@@ -782,6 +808,7 @@ netstat -ano | findstr :5432
 ### Erro de conexão com banco de dados
 
 1. Verifique se o container do PostgreSQL está rodando:
+
    ```bash
    docker-compose ps db
    ```
@@ -802,17 +829,27 @@ netstat -ano | findstr :5432
 #### Serviços Configurados
 
 1. **db** (PostgreSQL)
+
    - Banco de dados relacional
    - Volume persistente para dados
    - Healthcheck para garantir disponibilidade
 
-2. **backend** (Django/Daphne)
+2. **redis** (Redis)
+
+   - Channel Layer para Django Channels (WebSockets)
+   - Volume persistente para dados (AOF - Append Only File)
+   - Healthcheck para garantir disponibilidade
+   - Permite escalabilidade horizontal de WebSockets
+
+3. **backend** (Django/Daphne)
+
    - Servidor ASGI com suporte a WebSockets
    - Expõe API REST em `/api/`
    - WebSockets em `/ws/`
    - Conectado às redes `backend_network` e `frontend_network`
+   - Depende de `db` e `redis` estar saudáveis antes de iniciar
 
-3. **frontend** (Angular/Nginx)
+4. **frontend** (Angular/Nginx)
    - Build multi-stage: Node.js para build + Nginx para servir
    - Servidor Nginx com proxy reverso
    - Rotas `/api/` → proxy para `backend:8000`
@@ -830,6 +867,7 @@ O Nginx no container frontend configura:
 - **SPA Routing**: Todas as outras rotas retornam `index.html` para suportar rotas do Angular
 
 **Vantagens:**
+
 - Frontend e backend na mesma origem (sem problemas de CORS)
 - Simplifica configuração de URLs no código
 - Melhor para produção (uma única porta exposta)
@@ -837,14 +875,17 @@ O Nginx no container frontend configura:
 #### Build e Deploy
 
 **Modo Produção (padrão):**
+
 ```bash
 docker-compose up --build
 ```
+
 - Build Angular otimizado (minificação, tree-shaking)
 - Imagem final contém apenas Nginx + assets compilados
 - Tamanho reduzido da imagem final
 
 **Modo Desenvolvimento:**
+
 ```bash
 # Opção 1: Desenvolvimento local (fora do Docker)
 cd frontend && npm start
@@ -864,11 +905,20 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 ### WebSocket não conecta
 
 1. Verifique se o Daphne está rodando (servidor ASGI)
-2. Verifique os logs do backend:
+2. Verifique se o Redis está rodando e saudável:
+   ```bash
+   docker-compose ps redis
+   docker-compose logs redis
+   ```
+3. Verifique os logs do backend para erros de conexão com Redis:
    ```bash
    docker-compose logs -f backend
    ```
-3. Verifique se o Redis está configurado (para produção)
+4. Teste a conexão com Redis manualmente:
+   ```bash
+   docker-compose exec redis redis-cli ping
+   # Deve retornar: PONG
+   ```
 
 ### Limpar tudo e recomeçar
 
@@ -933,6 +983,7 @@ docker-compose exec backend flake8 . --statistics --count
 ### Cobertura de Testes
 
 O projeto utiliza `coverage.py` para gerar relatórios de cobertura de código. A configuração está em:
+
 - `backend/.coveragerc` - Configuração principal do coverage
 - `backend/setup.cfg` - Configurações adicionais (coverage e flake8)
 
@@ -956,12 +1007,14 @@ docker-compose exec backend coverage run --source='.' manage.py test && coverage
 ```
 
 **Estrutura do relatório de cobertura:**
+
 - Relatório textual: exibido no terminal
 - Relatório HTML: arquivos em `backend/htmlcov/`
   - Abra `backend/htmlcov/index.html` no navegador para ver a cobertura detalhada
   - Cada arquivo mostra quais linhas foram testadas e quais não foram
 
 **Arquivos excluídos da cobertura:**
+
 - Migrações Django (`*/migrations/*`)
 - Arquivos de configuração (`manage.py`, `settings/*`, `urls.py`, etc.)
 - Scripts utilitários (`init_db.py`, `create_superuser.py`, etc.)
@@ -969,7 +1022,7 @@ docker-compose exec backend coverage run --source='.' manage.py test && coverage
 
 ### Estrutura de Testes
 
-- **Backend**: 
+- **Backend**:
   - Testes unitários para Models e Serializers (Django TestCase)
   - Testes de integração para ViewSets e endpoints API (APITestCase)
   - Validação de permissões JWT e comportamento CRUD
@@ -979,25 +1032,26 @@ docker-compose exec backend coverage run --source='.' manage.py test && coverage
 
 ### Stack Tecnológica Completa
 
-| Camada | Tecnologia | Versão | Propósito |
-|--------|-----------|--------|-----------|
-| **Frontend** | Angular | 15.x | Framework SPA |
-| **UI Components** | PrimeNG | 15.x | Componentes de interface |
-| **Estilização** | Tailwind CSS | 3.x | Utility-first CSS |
-| **Gráficos** | Chart.js | 3.x | Visualizações de dados |
-| **Backend** | Django | 4.2+ | Framework web Python |
-| **API** | DRF | 3.14+ | API REST |
-| **WebSockets** | Channels | 4.0+ | Comunicação em tempo real |
-| **Servidor** | Daphne | 4.0+ | Servidor ASGI |
-| **Banco de Dados** | PostgreSQL | 14 | Banco relacional |
-| **Autenticação** | Simple JWT | 5.2+ | Tokens JWT |
-| **Containerização** | Docker | 20.10+ | Isolamento de serviços |
-| **Orquestração** | Docker Compose | 2.0+ | Gerenciamento de containers |
-| **Web Server** | Nginx | Alpine | Proxy reverso e servidor estático |
+| Camada              | Tecnologia     | Versão | Propósito                         |
+| ------------------- | -------------- | ------ | --------------------------------- |
+| **Frontend**        | Angular        | 15.x   | Framework SPA                     |
+| **UI Components**   | PrimeNG        | 15.x   | Componentes de interface          |
+| **Estilização**     | Tailwind CSS   | 3.x    | Utility-first CSS                 |
+| **Gráficos**        | Chart.js       | 3.x    | Visualizações de dados            |
+| **Backend**         | Django         | 4.2+   | Framework web Python              |
+| **API**             | DRF            | 3.14+  | API REST                          |
+| **WebSockets**      | Channels       | 4.0+   | Comunicação em tempo real         |
+| **Servidor**        | Daphne         | 4.0+   | Servidor ASGI                     |
+| **Banco de Dados**  | PostgreSQL     | 14     | Banco relacional                  |
+| **Autenticação**    | Simple JWT     | 5.2+   | Tokens JWT                        |
+| **Containerização** | Docker         | 20.10+ | Isolamento de serviços            |
+| **Orquestração**    | Docker Compose | 2.0+   | Gerenciamento de containers       |
+| **Web Server**      | Nginx          | Alpine | Proxy reverso e servidor estático |
 
 ### Padrões de Desenvolvimento
 
-- **Backend**: 
+- **Backend**:
+
   - Type Hints em todas as funções
   - `ModelViewSet` para CRUD completo
   - Service Layer Pattern
@@ -1046,9 +1100,11 @@ A API REST segue padrões RESTful:
 ### Otimizações Implementadas
 
 - **Backend**:
+
   - `select_related()` e `prefetch_related()` para evitar N+1 queries
   - Índices em campos frequentemente consultados
   - Paginação em listagens grandes
+  - Redis como Channel Layer para escalabilidade de WebSockets
   - Gzip compression no Nginx
 
 - **Frontend**:
@@ -1112,8 +1168,8 @@ cd frontend && npm test
 3. Configure `DJANGO_ALLOWED_HOSTS` com seu domínio
 4. Use um SECRET_KEY seguro e único
 5. Configure SSL/TLS (HTTPS)
-6. Configure Redis para Channel Layer (opcional, mas recomendado)
-7. Configure backups do banco de dados
+6. Redis já está configurado como Channel Layer para escalabilidade
+7. Configure backups do banco de dados e Redis
 
 ### Deploy com Docker Compose
 
@@ -1168,5 +1224,4 @@ Para dúvidas ou suporte, entre em contato com a equipe de desenvolvimento.
 
 **Desenvolvido com ❤️ pela equipe Front-Hub**
 
-*Última atualização: 2024*
-
+_Última atualização: 2024_
