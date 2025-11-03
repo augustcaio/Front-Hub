@@ -1,8 +1,8 @@
 <div class="p-4 max-w-[1400px] mx-auto">
   <!-- Header -->
   <div class="mb-6">
-    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">Dispositivos</h1>
-    <p class="m-0 text-[var(--text-color-secondary)]">Gerencie seus dispositivos IoT</p>
+    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">{{ 'devices.title' | translate }}</h1>
+    <p class="m-0 text-[var(--text-color-secondary)]">{{ 'devices.subtitle' | translate }}</p>
   </div>
 
   <!-- Toolbar com Filtros -->
@@ -17,7 +17,7 @@
             pInputText
             [(ngModel)]="searchText"
             (input)="onSearch()"
-            placeholder="Buscar por nome, ID ou descrição..."
+            [placeholder]="'devices.searchPlaceholder' | translate"
             class="w-full"
           />
         </span>
@@ -29,7 +29,7 @@
           (onChange)="onStatusChange()"
           optionLabel="label"
           optionValue="value"
-          placeholder="Filtrar por status"
+          [placeholder]="'devices.filterByStatus' | translate"
           [style]="{ width: '200px' }"
           [showClear]="true">
         </p-dropdown>
@@ -37,7 +37,7 @@
         <!-- Clear Search Button -->
         <p-button
           *ngIf="searchText || selectedStatus"
-          label="Limpar Filtros"
+          [label]="'devices.clearFilters' | translate"
           icon="pi pi-times"
           [styleClass]="'p-button-outlined'"
           (click)="selectedStatus = null; clearSearch()">
@@ -46,13 +46,13 @@
 
       <div class="p-toolbar-group-end flex gap-2">
         <p-button
-          label="Novo Dispositivo"
+          [label]="'devices.newDevice' | translate"
           icon="pi pi-plus"
           [styleClass]="'p-button-primary'"
           routerLink="/devices/new">
         </p-button>
         <p-button
-          label="Atualizar"
+          [label]="'devices.refresh' | translate"
           icon="pi pi-refresh"
           [styleClass]="'p-button-outlined'"
           [loading]="loading"
@@ -65,7 +65,7 @@
   <!-- Loading State -->
   <div *ngIf="loading" class="flex flex-col items-center justify-center p-12 text-center">
     <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
-    <p class="mt-4 text-[var(--text-color-secondary)]">Carregando dispositivos...</p>
+    <p class="mt-4 text-[var(--text-color-secondary)]">{{ 'devices.loadingDevices' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -75,7 +75,7 @@
         <i class="pi pi-exclamation-triangle text-5xl text-red-500"></i>
         <p class="m-0 text-[var(--text-color)]">{{ error }}</p>
         <p-button
-          label="Tentar novamente"
+          [label]="'devices.tryAgain' | translate"
           icon="pi pi-refresh"
           (click)="refresh()"
           [styleClass]="'p-button-outlined'">
@@ -92,12 +92,12 @@
         <div class="flex flex-col items-center gap-4 p-8 text-center">
           <i class="pi pi-inbox text-6xl text-[var(--text-color-secondary)]"></i>
           <p class="m-0 text-[var(--text-color-secondary)]">
-            <span *ngIf="searchText || selectedStatus">Nenhum dispositivo encontrado com os filtros aplicados.</span>
-            <span *ngIf="!searchText && !selectedStatus">Nenhum dispositivo cadastrado.</span>
+            <span *ngIf="searchText || selectedStatus">{{ 'devices.noDevicesFoundWithFilters' | translate }}</span>
+            <span *ngIf="!searchText && !selectedStatus">{{ 'devices.noDevicesRegistered' | translate }}</span>
           </p>
           <p-button
             *ngIf="searchText || selectedStatus"
-            label="Limpar Filtros"
+            [label]="'devices.clearFilters' | translate"
             icon="pi pi-times"
             (click)="selectedStatus = null; clearSearch()">
           </p-button>
@@ -119,17 +119,17 @@
         [rowsPerPageOptions]="[10, 20, 50]"
         responsiveLayout="scroll"
         [showCurrentPageReport]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} dispositivos"
+        [currentPageReportTemplate]="getCurrentPageReportTemplate()"
         styleClass="p-datatable-sm">
         
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="name">Nome <p-sortIcon field="name"></p-sortIcon></th>
-            <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
-            <th>ID Público</th>
-            <th>Descrição</th>
-            <th pSortableColumn="created_at">Criado em <p-sortIcon field="created_at"></p-sortIcon></th>
-            <th style="width: 10rem">Ações</th>
+            <th pSortableColumn="name">{{ 'devices.tableHeaders.name' | translate }} <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="status">{{ 'devices.tableHeaders.status' | translate }} <p-sortIcon field="status"></p-sortIcon></th>
+            <th>{{ 'devices.tableHeaders.publicId' | translate }}</th>
+            <th>{{ 'devices.tableHeaders.description' | translate }}</th>
+            <th pSortableColumn="created_at">{{ 'devices.tableHeaders.createdAt' | translate }} <p-sortIcon field="created_at"></p-sortIcon></th>
+            <th style="width: 10rem">{{ 'devices.tableHeaders.actions' | translate }}</th>
           </tr>
         </ng-template>
 
@@ -154,7 +154,7 @@
                 {{ device.description.length > 50 ? (device.description | slice:0:50) + '...' : device.description }}
               </span>
               <span *ngIf="!device.description" class="text-[var(--text-color-secondary)] italic">
-                Sem descrição
+                {{ 'devices.noDescription' | translate }}
               </span>
             </td>
             <td>
@@ -165,7 +165,7 @@
             <td>
               <div class="flex gap-2">
                 <p-button
-                  label="Detalhes"
+                  [label]="'devices.details' | translate"
                   icon="pi pi-eye"
                   [styleClass]="'p-button-outlined p-button-sm'"
                   [routerLink]="['/devices', device.id]">
@@ -180,7 +180,7 @@
             <td colspan="6" class="text-center p-8">
               <div class="flex flex-col items-center gap-4">
                 <i class="pi pi-inbox text-4xl text-[var(--text-color-secondary)]"></i>
-                <p class="text-[var(--text-color-secondary)]">Nenhum dispositivo encontrado</p>
+                <p class="text-[var(--text-color-secondary)]">{{ 'devices.noDevicesFound' | translate }}</p>
               </div>
             </td>
           </tr>

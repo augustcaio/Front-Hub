@@ -17,6 +17,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { PaginatorModule } from 'primeng/paginator';
 import { CardModule } from 'primeng/card';
 import { ToolbarModule } from 'primeng/toolbar';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DeviceService, Device, DeviceListResponse } from '../../core/services/device.service';
 import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
 import { formatDateTime } from '../../core/utils/date.utils';
@@ -33,6 +34,7 @@ interface StatusOption {
     CommonModule,
     FormsModule,
     RouterModule,
+    TranslateModule,
     TableModule,
     ButtonModule,
     TagModule,
@@ -49,6 +51,7 @@ interface StatusOption {
 export class DevicesListComponent implements OnInit {
   private readonly deviceService = inject(DeviceService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   loading = true;
   error: string | null = null;
@@ -60,16 +63,25 @@ export class DevicesListComponent implements OnInit {
   searchText = '';
   selectedStatus: string | null = null;
 
-  statusOptions: StatusOption[] = [
-    { label: 'Todos', value: null },
-    { label: 'Ativo', value: 'active' },
-    { label: 'Inativo', value: 'inactive' },
-    { label: 'Manutenção', value: 'maintenance' },
-    { label: 'Erro', value: 'error' },
-  ];
+  statusOptions: StatusOption[] = [];
 
   ngOnInit(): void {
+    this.updateStatusOptions();
+    this.translate.onLangChange.subscribe(() => {
+      this.updateStatusOptions();
+      this.cdr.markForCheck();
+    });
     this.loadDevices();
+  }
+
+  private updateStatusOptions(): void {
+    this.statusOptions = [
+      { label: this.translate.instant('devices.all'), value: null },
+      { label: this.translate.instant('devices.statusOptions.active'), value: 'active' },
+      { label: this.translate.instant('devices.statusOptions.inactive'), value: 'inactive' },
+      { label: this.translate.instant('devices.statusOptions.maintenance'), value: 'maintenance' },
+      { label: this.translate.instant('devices.statusOptions.error'), value: 'error' },
+    ];
   }
 
   loadDevices(): void {
@@ -105,7 +117,7 @@ export class DevicesListComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (error: Error) => {
-        this.error = error.message || 'Erro ao carregar dispositivos';
+        this.error = error.message || this.translate.instant('common.error');
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -144,6 +156,10 @@ export class DevicesListComponent implements OnInit {
 
   formatDate(dateString: string): string {
     return formatDateTime(dateString);
+  }
+
+  getCurrentPageReportTemplate(): string {
+    return this.translate.instant('devices.showingDevices');
   }
 
   refresh(): void {

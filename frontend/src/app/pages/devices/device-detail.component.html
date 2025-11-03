@@ -3,23 +3,23 @@
   <div class="mb-8 flex items-center gap-4">
     <p-button
       icon="pi pi-arrow-left"
-      label="Voltar"
+      [label]="'common.back' | translate"
       [styleClass]="'p-button-outlined'"
       (click)="goBack()"
     >
     </p-button>
     <div>
       <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
-        Detalhes do Dispositivo
+        {{ 'devices.deviceDetails' | translate }}
       </h1>
-      <p class="m-0 text-[var(--text-color-secondary)]">Informações completas do dispositivo</p>
+      <p class="m-0 text-[var(--text-color-secondary)]">{{ 'devices.deviceDetailsSubtitle' | translate }}</p>
     </div>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading" class="flex flex-col items-center justify-center p-12 text-center">
     <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
-    <p class="mt-4 text-[var(--text-color-secondary)]">Carregando detalhes do dispositivo...</p>
+    <p class="mt-4 text-[var(--text-color-secondary)]">{{ 'devices.loadingDeviceDetails' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -30,14 +30,14 @@
         <p class="m-0 text-[var(--text-color)]">{{ error }}</p>
         <div class="flex gap-2">
           <p-button
-            label="Tentar novamente"
+            [label]="'devices.tryAgain' | translate"
             icon="pi pi-refresh"
             (click)="refresh()"
             [styleClass]="'p-button-outlined'"
           >
           </p-button>
           <p-button
-            label="Voltar para Lista"
+            [label]="'devices.backToList' | translate"
             icon="pi pi-arrow-left"
             [styleClass]="'p-button-outlined'"
             (click)="goBack()"
@@ -72,7 +72,7 @@
         </div>
         <div class="flex gap-2">
           <p-button
-            label="Atualizar"
+            [label]="'devices.refresh' | translate"
             icon="pi pi-refresh"
             [styleClass]="'p-button-outlined'"
             (click)="refresh()"
@@ -91,27 +91,27 @@
             class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
           >
             <i class="pi pi-info-circle text-[var(--primary-color)]"></i>
-            Identificação
+            {{ 'devices.identification' | translate }}
           </h3>
           <p-divider></p-divider>
         </div>
         <div class="flex flex-col gap-6 pt-2">
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >ID Interno</span
+              >{{ 'devices.internalId' | translate }}</span
             >
             <span class="text-[var(--text-color)] font-mono">{{ device.id }}</span>
           </div>
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >ID Público</span
+              >{{ 'devices.publicId' | translate }}</span
             >
             <span class="text-[var(--text-color)] font-mono text-sm break-all">{{
               device.public_id
             }}</span>
           </div>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">Nome</span>
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{ 'devices.name' | translate }}</span>
             <span class="text-[var(--text-color)]">{{ device.name }}</span>
           </div>
         </div>
@@ -124,14 +124,14 @@
             class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
           >
             <i class="pi pi-cog text-[var(--primary-color)]"></i>
-            Status e Estado
+            {{ 'devices.statusAndState' | translate }}
           </h3>
           <p-divider></p-divider>
         </div>
         <div class="flex flex-col gap-6 pt-2">
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >Status Atual</span
+              >{{ 'devices.currentStatus' | translate }}</span
             >
             <p-tag
               [value]="getStatusLabel(device.status)"
@@ -141,13 +141,13 @@
           </div>
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >Criado em</span
+              >{{ 'devices.tableHeaders.createdAt' | translate }}</span
             >
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >Última Atualização</span
+              >{{ 'devices.lastUpdate' | translate }}</span
             >
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
@@ -160,7 +160,7 @@
       <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-file-edit text-[var(--primary-color)]"></i>
-          Descrição
+          {{ 'devices.description' | translate }}
         </h3>
         <p-divider></p-divider>
       </div>
@@ -174,7 +174,7 @@
       <div class="text-center py-8">
         <i class="pi pi-info-circle text-4xl text-[var(--text-color-secondary)] mb-4"></i>
         <p class="m-0 text-[var(--text-color-secondary)]">
-          Nenhuma descrição disponível para este dispositivo.
+          {{ 'devices.noDescriptionAvailable' | translate }}
         </p>
       </div>
     </p-card>
@@ -184,7 +184,7 @@
       <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-calendar text-[var(--primary-color)]"></i>
-          Informações Temporais
+          {{ 'devices.temporalInfo' | translate }}
         </h3>
         <p-divider></p-divider>
       </div>
@@ -193,7 +193,7 @@
           <i class="pi pi-calendar-plus text-xl text-[var(--primary-color)] mt-1"></i>
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >Data de Criação</span
+              >{{ 'devices.creationDate' | translate }}</span
             >
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
@@ -202,7 +202,7 @@
           <i class="pi pi-calendar-minus text-xl text-[var(--primary-color)] mt-1"></i>
           <div class="flex flex-col gap-2">
             <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >Última Modificação</span
+              >{{ 'devices.lastModification' | translate }}</span
             >
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
@@ -215,33 +215,33 @@
       <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-wifi text-[var(--primary-color)]"></i>
-          Conexão em Tempo Real
+          {{ 'devices.realtimeConnection' | translate }}
         </h3>
         <p-divider></p-divider>
       </div>
 
       <div class="flex flex-col gap-4 pt-2">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-[var(--text-color-secondary)]">Status:</span>
+          <span class="text-sm font-medium text-[var(--text-color-secondary)]">{{ 'devices.connectionStatus' | translate }}</span>
           <span *ngIf="wsStatus === 'connected'" class="flex items-center gap-2">
             <i class="pi pi-check-circle text-green-500"></i>
-            <span class="text-green-600 font-medium">Conectado</span>
+            <span class="text-green-600 font-medium">{{ 'devices.connected' | translate }}</span>
           </span>
           <span *ngIf="wsStatus === 'connecting'" class="flex items-center gap-2">
             <i class="pi pi-spin pi-spinner text-blue-500"></i>
-            <span class="text-blue-600 font-medium">Conectando...</span>
+            <span class="text-blue-600 font-medium">{{ 'devices.connecting' | translate }}</span>
           </span>
           <span *ngIf="wsStatus === 'disconnected'" class="flex items-center gap-2">
             <i class="pi pi-times-circle text-gray-500"></i>
-            <span class="text-gray-600 font-medium">Desconectado</span>
+            <span class="text-gray-600 font-medium">{{ 'devices.disconnected' | translate }}</span>
           </span>
           <span *ngIf="wsStatus === 'error'" class="flex items-center gap-2">
             <i class="pi pi-exclamation-triangle text-red-500"></i>
-            <span class="text-red-600 font-medium">Erro na conexão</span>
+            <span class="text-red-600 font-medium">{{ 'devices.connectionError' | translate }}</span>
           </span>
         </div>
         <p class="m-0 text-xs text-[var(--text-color-secondary)]">
-          Recebendo atualizações de medições em tempo real via WebSocket
+          {{ 'devices.realtimeUpdates' | translate }}
         </p>
       </div>
     </p-card>
@@ -363,7 +363,7 @@
       <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
-          Medições em Tempo Real
+          {{ 'devices.recentMeasurements' | translate }}
         </h3>
         <p-divider></p-divider>
       </div>
@@ -376,13 +376,13 @@
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex-1 min-w-[200px]">
               <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >Métrica</span
+                >{{ 'devices.measurementMetric' | translate }}</span
               >
               <span class="text-[var(--text-color)] font-semibold">{{ measurement.metric }}</span>
             </div>
             <div class="flex-1 min-w-[150px]">
               <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >Valor</span
+                >{{ 'devices.measurementValue' | translate }}</span
               >
               <span class="text-[var(--text-color)] text-lg font-bold"
                 >{{ measurement.value }} {{ measurement.unit }}</span
@@ -390,7 +390,7 @@
             </div>
             <div class="flex-1 min-w-[200px]">
               <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >Timestamp</span
+                >{{ 'devices.measurementTimestamp' | translate }}</span
               >
               <span class="text-[var(--text-color)] text-sm">{{
                 formatDate(measurement.timestamp)
@@ -405,9 +405,9 @@
     <p-card *ngIf="wsConnected && recentMeasurements.length === 0">
       <div class="text-center py-8">
         <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
-        <p class="m-0 text-[var(--text-color-secondary)]">Aguardando medições em tempo real...</p>
+        <p class="m-0 text-[var(--text-color-secondary)]">{{ 'devices.waitingMeasurements' | translate }}</p>
         <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
-          As novas medições do dispositivo aparecerão aqui automaticamente
+          {{ 'devices.measurementsWillAppear' | translate }}
         </p>
       </div>
     </p-card>

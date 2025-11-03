@@ -21,6 +21,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DeviceService,
   Device,
@@ -39,6 +40,7 @@ interface StatusOption {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslateModule,
     InputTextModule,
     ButtonModule,
     DropdownModule,
@@ -56,6 +58,7 @@ export class DeviceFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   readonly deviceForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
@@ -72,12 +75,7 @@ export class DeviceFormComponent implements OnInit {
   deviceId: number | null = null;
   categories: Category[] = [];
 
-  statusOptions: StatusOption[] = [
-    { label: 'Ativo', value: 'active' },
-    { label: 'Inativo', value: 'inactive' },
-    { label: 'Manutenção', value: 'maintenance' },
-    { label: 'Erro', value: 'error' },
-  ];
+  statusOptions: StatusOption[] = [];
 
   get name() {
     return this.deviceForm.get('name');
@@ -96,6 +94,12 @@ export class DeviceFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.updateStatusOptions();
+    this.translate.onLangChange.subscribe(() => {
+      this.updateStatusOptions();
+      this.cdr.markForCheck();
+    });
+    
     this.loadCategories();
     
     // Verifica se está em modo de edição
@@ -105,6 +109,15 @@ export class DeviceFormComponent implements OnInit {
       this.deviceId = parseInt(id, 10);
       this.loadDevice(this.deviceId);
     }
+  }
+
+  private updateStatusOptions(): void {
+    this.statusOptions = [
+      { label: this.translate.instant('devices.statusOptions.active'), value: 'active' },
+      { label: this.translate.instant('devices.statusOptions.inactive'), value: 'inactive' },
+      { label: this.translate.instant('devices.statusOptions.maintenance'), value: 'maintenance' },
+      { label: this.translate.instant('devices.statusOptions.error'), value: 'error' },
+    ];
   }
 
   loadCategories(): void {
