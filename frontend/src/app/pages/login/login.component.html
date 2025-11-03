@@ -7,6 +7,14 @@
         <p class="m-0 text-[var(--text-color-secondary)] text-[0.95rem]">Acesse sua conta</p>
       </div>
 
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="mb-4">
+        <p-message 
+          severity="success" 
+          [text]="successMessage">
+        </p-message>
+      </div>
+
       <!-- Error Message -->
       <div *ngIf="errorMessage" class="mb-4">
         <p-message 

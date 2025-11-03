@@ -37,7 +37,9 @@
             <i class="pi pi-user text-2xl"></i>
           </div>
           <div>
-            <h2 class="m-0 text-2xl font-semibold text-[#1f2937]">{{ userInfo.username }}</h2>
+            <h2 class="m-0 text-2xl font-semibold text-[#1f2937]">
+              {{ (userInfo.first_name && userInfo.last_name) ? (userInfo.first_name + ' ' + userInfo.last_name) : userInfo.username }}
+            </h2>
             <p class="m-0 mt-1 text-[#6b7280] text-sm">Informações do perfil</p>
           </div>
         </div>
@@ -54,6 +56,28 @@
             </div>
           </div>
 
+          <!-- First Name -->
+          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.first_name">
+            <div class="flex-1 mb-2 sm:mb-0">
+              <label class="block text-sm font-medium text-[#6b7280] mb-1">Nome</label>
+              <p class="m-0 text-base text-[#1f2937]">{{ userInfo.first_name }}</p>
+            </div>
+            <div class="flex items-center">
+              <i class="pi pi-user-edit text-[#6b7280] mr-2"></i>
+            </div>
+          </div>
+
+          <!-- Last Name -->
+          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.last_name">
+            <div class="flex-1 mb-2 sm:mb-0">
+              <label class="block text-sm font-medium text-[#6b7280] mb-1">Sobrenome</label>
+              <p class="m-0 text-base text-[#1f2937]">{{ userInfo.last_name }}</p>
+            </div>
+            <div class="flex items-center">
+              <i class="pi pi-user-edit text-[#6b7280] mr-2"></i>
+            </div>
+          </div>
+
           <!-- Email -->
           <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.email">
             <div class="flex-1 mb-2 sm:mb-0">
@@ -66,24 +90,24 @@
           </div>
 
           <!-- User ID -->
-          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.userId">
+          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.id">
             <div class="flex-1 mb-2 sm:mb-0">
               <label class="block text-sm font-medium text-[#6b7280] mb-1">ID do Usuário</label>
-              <p class="m-0 text-base text-[#1f2937]">{{ userInfo.userId }}</p>
+              <p class="m-0 text-base text-[#1f2937]">{{ userInfo.id }}</p>
             </div>
             <div class="flex items-center">
               <i class="pi pi-id-card text-[#6b7280] mr-2"></i>
             </div>
           </div>
 
-          <!-- Token Expiration -->
-          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.exp">
+          <!-- Account Created Date -->
+          <div class="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-b-0" *ngIf="userInfo.date_joined">
             <div class="flex-1 mb-2 sm:mb-0">
-              <label class="block text-sm font-medium text-[#6b7280] mb-1">Token expira em</label>
-              <p class="m-0 text-base text-[#1f2937]">{{ getExpirationDate(userInfo.exp) }}</p>
+              <label class="block text-sm font-medium text-[#6b7280] mb-1">Conta criada em</label>
+              <p class="m-0 text-base text-[#1f2937]">{{ getExpirationDate(userInfo.date_joined) }}</p>
             </div>
             <div class="flex items-center">
-              <i class="pi pi-clock text-[#6b7280] mr-2"></i>
+              <i class="pi pi-calendar text-[#6b7280] mr-2"></i>
             </div>
           </div>
         </div>

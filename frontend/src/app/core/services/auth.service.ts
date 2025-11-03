@@ -35,6 +35,15 @@ export interface RegisterResponse {
   last_name: string;
 }
 
+export interface UserInfo {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  date_joined: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -169,6 +178,21 @@ export class AuthService {
       tap((response) => {
         this.setTokens(response.access, refreshToken);
       }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.logout();
+        }
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * Obtém informações do usuário atual
+   */
+  getCurrentUser(): Observable<UserInfo> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<UserInfo>(`${this.apiUrl}/me/`, { headers }).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
           this.logout();

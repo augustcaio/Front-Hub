@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from accounts.serializers import CustomTokenObtainPairSerializer
+from accounts.views import register_user, get_current_user
 from devices.views import DeviceViewSet, MeasurementIngestionView, DeviceAggregatedDataView, AlertViewSet
 from typing import List
 
@@ -29,6 +30,12 @@ urlpatterns: List = [
     path('api/token/', TokenObtainPairView.as_view(serializer_class=CustomTokenObtainPairSerializer), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # User registration endpoint
+    path('api/register/', register_user, name='register'),
+    
+    # Current user endpoint
+    path('api/me/', get_current_user, name='current_user'),
     
     # API endpoints
     path('api/', include(router.urls)),

@@ -3,9 +3,62 @@ Custom serializers for accounts app.
 
 Following Django REST Framework best practices.
 """
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.models import User
+from django.contrib.auth.password_validation import validate_password
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user data (read-only).
+    
+    Used to return user information without exposing sensitive data.
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined')
+        read_only_fields = fields
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+    
+    Handles user creation with proper password validation.
+    """
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password')
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'email': {'required': True}
+        }
+    
+    def create(self, validated_data):
+        """
+        Create and return a new user instance.
+        
+        Args:
+            validated_data: Validated user data
+            
+        Returns:
+            User instance
+        """
+        password = validated_data.pop('password')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

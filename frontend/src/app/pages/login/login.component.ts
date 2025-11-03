@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -25,7 +25,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -39,6 +39,7 @@ export class LoginComponent {
 
   loading = false;
   errorMessage: string | null = null;
+  successMessage: string | null = null;
 
   get username() {
     return this.loginForm.get('username');
@@ -46,6 +47,14 @@ export class LoginComponent {
 
   get password() {
     return this.loginForm.get('password');
+  }
+
+  ngOnInit(): void {
+    // Verifica se o usuário veio do registro
+    if (this.route.snapshot.queryParams['registered'] === 'true') {
+      this.successMessage = 'Conta criada com sucesso! Faça login para continuar.';
+      this.cdr.markForCheck();
+    }
   }
 
   onSubmit(): void {

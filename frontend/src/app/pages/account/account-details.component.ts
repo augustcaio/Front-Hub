@@ -5,14 +5,7 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
-import { AuthService } from '../../core/services/auth.service';
-
-interface UserInfo {
-  username: string;
-  email?: string;
-  userId?: number;
-  exp?: number;
-}
+import { AuthService, UserInfo } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-account-details',
@@ -45,53 +38,28 @@ export class AccountDetailsComponent implements OnInit {
     this.error = null;
     this.cdr.markForCheck();
 
-    try {
-      const token = this.authService.getToken();
-      if (!token) {
-        this.error = 'Token não encontrado';
+    this.authService.getCurrentUser().subscribe({
+      next: (userInfo) => {
+        this.userInfo = userInfo;
         this.loading = false;
         this.cdr.markForCheck();
-        return;
+      },
+      error: (error: Error) => {
+        this.error = error.message || 'Erro ao carregar informações do usuário';
+        this.loading = false;
+        this.cdr.markForCheck();
       }
-
-      // Decodifica o token JWT para obter informações do usuário
-      const payload = this.decodeJwtToken(token);
-      this.userInfo = {
-        username: payload.username || 'Usuário',
-        email: payload.email,
-        userId: payload.user_id,
-        exp: payload.exp
-      };
-
-      this.loading = false;
-      this.cdr.markForCheck();
-    } catch (error) {
-      this.error = 'Erro ao decodificar token';
-      this.loading = false;
-      this.cdr.markForCheck();
-    }
+    });
   }
 
-  private decodeJwtToken(token: string): any {
+  getExpirationDate(dateString?: string): string {
+    if (!dateString) return 'N/A';
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      throw new Error('Token inválido');
+      const date = new Date(dateString);
+      return date.toLocaleString('pt-BR');
+    } catch {
+      return 'N/A';
     }
-  }
-
-  getExpirationDate(exp?: number): string {
-    if (!exp) return 'N/A';
-    const date = new Date(exp * 1000);
-    return date.toLocaleString('pt-BR');
   }
 
   formatDate(dateString: string | number | Date): string {
