@@ -20,5 +20,42 @@
     <div class="hidden md:block">
       <p-menubar [model]="menuItems" [styleClass]="'border-0 bg-transparent'"></p-menubar>
     </div>
+
+    <!-- Account Menu -->
+    <div class="relative account-menu-container ml-4">
+      <button
+        type="button"
+        (click)="toggleAccountMenu()"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--primary-color)] text-white hover:bg-[var(--primary-color)]/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2"
+        [attr.aria-expanded]="isAccountMenuOpen"
+        aria-label="Menu da conta"
+        aria-haspopup="true">
+        <i class="pi pi-user text-lg"></i>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div
+        *ngIf="isAccountMenuOpen"
+        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[12rem] max-w-[calc(100vw-2rem)]"
+        role="menu"
+        aria-orientation="vertical">
+        <a
+          routerLink="/account/details"
+          (click)="navigateToAccountDetails()"
+          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 cursor-pointer"
+          role="menuitem">
+          <i class="pi pi-user mr-3 text-gray-500"></i>
+          <span>Detalhes da Conta</span>
+        </a>
+        <button
+          type="button"
+          (click)="onLogout()"
+          class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer text-left"
+          role="menuitem">
+          <i class="pi pi-sign-out mr-3"></i>
+          <span>Sair</span>
+        </button>
+      </div>
+    </div>
   </div>
 </header>

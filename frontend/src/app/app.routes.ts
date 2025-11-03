@@ -25,6 +25,10 @@ export const routes: Routes = [
       {
         path: 'devices',
         loadChildren: () => import('./pages/devices/devices.routes').then(m => m.routes)
+      },
+      {
+        path: 'account/details',
+        loadComponent: () => import('./pages/account/account-details.component').then(m => m.AccountDetailsComponent)
       }
     ]
   },
