@@ -41,17 +41,16 @@ class DeviceViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Device model.
     
-    Provides list and retrieve actions (as per task 1.7 requirements).
+    Provides full CRUD operations (Create, Read, Update, Delete).
     Uses JWT authentication (configured globally in settings).
     """
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
     permission_classes: list = [IsAuthenticated]
-    http_method_names: list[str] = ['get']  # Only allow GET (list and retrieve)
     
     def get_queryset(self):
-        """Optimize queryset with select_related/prefetch_related if needed."""
-        queryset = Device.objects.all()
+        """Optimize queryset with select_related to avoid N+1 queries."""
+        queryset = Device.objects.select_related('category').all()
         
         # Order by created_at (newest first) as defined in model Meta
         queryset = queryset.order_by('-created_at')

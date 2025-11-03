@@ -28,11 +28,15 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  id: number;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+  access: string;
+  refresh: string;
 }
 
 export interface UserInfo {
@@ -82,7 +86,7 @@ export class AuthService {
   }
 
   /**
-   * Registra um novo usuário
+   * Registra um novo usuário e autentica automaticamente
    */
   register(
     username: string,
@@ -104,6 +108,11 @@ export class AuthService {
     });
 
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register/`, body, { headers, withCredentials: false }).pipe(
+      tap((response) => {
+        // Salvar tokens e atualizar estado de autenticação
+        this.setTokens(response.access, response.refresh);
+        this.isAuthenticatedSubject.next(true);
+      }),
       catchError((error: HttpErrorResponse) => {
         return this.handleRegisterError(error);
       })

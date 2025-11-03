@@ -86,15 +86,13 @@ export class RegisterComponent {
     this.authService.register(username, email, firstName, lastName, password).subscribe({
       next: () => {
         this.loading = false;
-        this.successMessage = 'Conta criada com sucesso! Redirecionando para o login...';
+        this.successMessage = 'Conta criada com sucesso! Você será redirecionado...';
         this.cdr.markForCheck();
         
-        // Redireciona para login após 2 segundos
+        // Redireciona para dashboard após registro bem-sucedido (usuário já está autenticado)
         setTimeout(() => {
-          this.router.navigate(['/login'], {
-            queryParams: { registered: 'true' }
-          });
-        }, 2000);
+          this.router.navigate(['/dashboard']);
+        }, 1500);
       },
       error: (error: Error) => {
         this.loading = false;

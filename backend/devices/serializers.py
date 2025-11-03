@@ -87,6 +87,7 @@ class DeviceSerializer(serializers.ModelSerializer):
                 f"Status must be one of: {', '.join(valid_statuses)}"
             )
         return value
+    
 
 
 class MeasurementSerializer(serializers.ModelSerializer):
