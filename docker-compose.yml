@@ -1,32 +1,60 @@
 services:
+  # Redis para Channel Layer (WebSockets)
+  redis:
+    image: redis:7-alpine
+    container_name: front_hub_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - backend_network
+    restart: unless-stopped
+
+  # Banco de dados PostgreSQL
   db:
     image: postgres:14
     container_name: front_hub_db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-front_hub_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - backend_network
+    restart: unless-stopped
 
+  # Backend Django com Daphne (suporta WebSockets)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: front_hub_backend
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "echo '=== Aguardando banco de dados ===' &&
+             sleep 2 &&
+             python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+             echo '=== Inicializando banco de dados ===' &&
+             python init_db.py &&
+             echo '=== Servidor iniciando ===' &&
+             daphne config.asgi:application --bind 0.0.0.0 --port 8000"
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
@@ -35,19 +63,72 @@ services:
       - "${DJANGO_PORT:-8000}:8000"
     env_file:
       - .env
+    environment:
+      # Garantir que as variáveis estão disponíveis mesmo sem .env
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-front_hub_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Verifica se o servidor está respondendo
+      # Aceita código 401 (Unauthorized) como sucesso, pois indica que o servidor está funcionando
+      # e apenas requer autenticação, o que é o comportamento esperado
+      test: ["CMD", "python", "healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - backend_network
+      - frontend_network
     restart: unless-stopped
+
+  # Frontend Angular com Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    container_name: front_hub_frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # Verifica se o Nginx está respondendo na porta 80 usando curl
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - frontend_network
+      - backend_network  # Precisa acessar o backend para proxy reverso
+    restart: unless-stopped
+    environment:
+      # Variáveis de ambiente podem ser usadas para configuração dinâmica
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
 
 volumes:
   postgres_data:
+  redis_data:
   static_volume:
   media_volume:
 
 networks:
   backend_network:
+    driver: bridge
+  frontend_network:
     driver: bridge
 

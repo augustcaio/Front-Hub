@@ -1,0 +1,66 @@
+---
+alwaysApply: true
+---
+
+# Angular Best Practices
+
+Este projeto adere às melhores práticas modernas do Angular, enfatizando manutenibilidade, performance, acessibilidade e escalabilidade[cite: 76].
+
+## TypeScript Best Practices
+
+- **Verificação de Tipo Estrita:** Sempre ative e siga a verificação de tipo estrita (`strict: true`). [cite_start]Isso ajuda a detectar erros precocemente[cite: 77].
+- **Prefira a Inferência de Tipo:** Permita que o TypeScript infira tipos quando são óbvios a partir do contexto. [cite_start]Isso reduz a verbosidade[cite: 78].
+  - **Ruim:** `let name: string = 'Angular';` [cite: 79]
+  - [cite_start]**Bom:** `let name = 'Angular';` [cite: 81]
+- [cite_start]**Evite `any`:** Não use o tipo `any` a menos que seja absolutamente necessário, pois ele ignora a verificação de tipo[cite: 82]. [cite_start]Prefira `unknown` quando o tipo é incerto e você precisa tratá-lo com segurança[cite: 82].
+
+## Angular Best Practices
+
+- [cite_start]**Componentes Standalone:** Sempre use componentes, diretivas e pipes _standalone_[cite: 83]. [cite_start]Evite o uso de `NgModules` para novos recursos[cite: 84].
+- [cite_start]**Signals para Gerenciamento de Estado:** Utilize Signals do Angular para gerenciamento de estado reativo dentro de componentes e serviços[cite: 88].
+- **Lazy Loading:** Implemente _lazy loading_ para rotas de recursos para melhorar os tempos de carregamento iniciais[cite: 88].
+- [cite_start]**Bindings de Host:** NÃO utilize os decoradores `@HostBinding` e `@HostListener`[cite: 90]. [cite_start]Coloque os bindings de host dentro do objeto `host` do decorador `@Component` ou `@Directive`[cite: 91].
+
+## Componentes
+
+- **Responsabilidade Única:** Mantenha os componentes pequenos, focados e responsáveis por uma única funcionalidade[cite: 92].
+- [cite_start]**Funções `input()` e `output()`:** Prefira as funções `input()` e `output()` em vez dos decoradores `@Input()` e `@Output()`[cite: 93].
+  - **Sintaxe Nova (Recomendada):**
+    ````typescript
+    userId = input<string>('');
+    userSelected = output<string>();
+    [cite_start]``` [cite: 96, 97]
+    ````
+- **`computed()` para Estado Derivado:** Use a função `computed()` para estado derivado baseado em signals[cite: 97].
+- [cite_start]**`ChangeDetectionStrategy.OnPush`:** Sempre defina `changeDetection: ChangeDetectionStrategy.OnPush` para benefícios de desempenho[cite: 98].
+- [cite_start]**Forms Reativos:** Prefira _Reactive Forms_ em vez de _Template-driven Forms_ para validação e controles dinâmicos[cite: 100].
+- **Sem `ngClass` / `NgClass`:** Não use a diretiva `ngClass`[cite: 101]. Use bindings de classe nativos para estilos condicionais[cite: 101]:
+  - [cite_start]**Bom:** `<section [class.active]="isActive"></section>` [cite: 102]
+- [cite_start]**Sem `ngStyle` / `NgStyle`:** Não use a diretiva `ngStyle`[cite: 103]. [cite_start]Use bindings de estilo nativos para estilos inline condicionais[cite: 103]:
+  - [cite_start]**Bom:** `<section [style.font-size.px]="fontSize"></section>` [cite: 103]
+
+## Templates
+
+- **Fluxo de Controle Nativo:** Use a nova sintaxe de fluxo de controle integrada (`@if`, `@for`, `@switch`) em vez das diretivas estruturais antigas (`*ngIf`, `*ngFor`)[cite: 108, 109].
+- [cite_start]**Async Pipe:** Use o `async` pipe para lidar com observables em templates[cite: 111]. [cite_start]Isso gerencia a inscrição e a anulação da inscrição automaticamente, prevenindo vazamentos de memória[cite: 111].
+
+## Services
+
+- **Responsabilidade Única:** Projete serviços em torno de uma única responsabilidade bem definida[cite: 112].
+- [cite_start]**`providedIn: 'root'`:** Use `providedIn: 'root'` para garantir que os serviços sejam singletons e otimizados (_tree-shakable_)[cite: 113].
+- [cite_start]**Função `inject()`:** Prefira a função `inject()` em vez da injeção por construtor ao injetar dependências[cite: 113].
+  - **Sintaxe Nova (Recomendada):**
+    ````typescript
+    export class MyComponent {
+      private myService = inject(MyService);
+    }
+    ``` [cite: 115, 116]
+    ````
+
+---
+
+Temos agora diretrizes de alto padrão para as duas pontas da nossa aplicação.
+
+**Próxima Task:** **1.2: Configurar ambiente de desenvolvimento Django.**
+
+**Qual o nome do projeto/aplicação que você gostaria de usar no Django?** (Ex: `iot_project` para o projeto principal e `devices_app` para a aplicação de dispositivos).

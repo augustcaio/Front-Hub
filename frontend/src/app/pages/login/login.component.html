@@ -1,0 +1,100 @@
+<div class="flex items-center justify-center min-h-screen p-4 bg-[var(--surface-ground)]">
+  <div class="w-full max-w-[420px]">
+    <p-card styleClass="login-card shadow-lg">
+      <!-- Header -->
+      <div class="text-center py-6">
+        <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--primary-color)]">{{ 'app.title' | translate }}</h1>
+        <p class="m-0 text-[var(--text-color-secondary)] text-[0.95rem]">{{ 'auth.accessAccount' | translate }}</p>
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="mb-4">
+        <p-message 
+          severity="success" 
+          [text]="successMessage">
+        </p-message>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-4">
+        <p-message 
+          severity="error" 
+          [text]="errorMessage">
+        </p-message>
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Username Field -->
+        <div class="mb-6">
+          <label for="username" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+            {{ 'auth.username' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <input 
+            id="username"
+            type="text"
+            pInputText
+            formControlName="username"
+            [placeholder]="'auth.enterUsername' | translate"
+            class="w-full"
+            [class.ng-invalid]="username?.invalid && username?.touched"
+            [class.ng-valid]="username?.valid && username?.touched"
+            />
+          <ng-container *ngIf="username?.invalid && username?.touched">
+            <small class="text-red-500 text-xs block mt-1">
+              <span *ngIf="username?.errors?.['required']">{{ 'auth.usernameRequired' | translate }}</span>
+              <span *ngIf="username?.errors?.['minlength']">{{ 'auth.usernameMinLength' | translate }}</span>
+            </small>
+          </ng-container>
+        </div>
+
+        <!-- Password Field -->
+        <div class="mb-6">
+          <label for="password" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+            {{ 'auth.password' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <p-password 
+            id="password"
+            formControlName="password"
+            [placeholder]="'auth.enterPassword' | translate"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            [class.ng-invalid]="password?.invalid && password?.touched"
+            [class.ng-valid]="password?.valid && password?.touched">
+          </p-password>
+          <ng-container *ngIf="password?.invalid && password?.touched">
+            <small class="text-red-500 text-xs block mt-1">
+              <span *ngIf="password?.errors?.['required']">{{ 'auth.passwordRequired' | translate }}</span>
+              <span *ngIf="password?.errors?.['minlength']">{{ 'auth.passwordMinLength' | translate }}</span>
+            </small>
+          </ng-container>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-8">
+          <p-button 
+            type="submit"
+            [label]="'auth.login' | translate"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [loading]="loading"
+            [disabled]="loginForm.invalid || loading"
+            styleClass="w-full py-3">
+          </p-button>
+        </div>
+
+        <!-- Register Link -->
+        <div class="mt-6 text-center">
+          <p class="text-[var(--text-color-secondary)] text-sm">
+            {{ 'auth.noAccount' | translate }}
+            <a routerLink="/register" class="text-[var(--primary-color)] font-medium hover:underline ml-1">
+              {{ 'auth.register' | translate }}
+            </a>
+          </p>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>

@@ -1,0 +1,445 @@
+<div class="p-6 max-w-[1400px] mx-auto">
+  <!-- Header com Botão Voltar -->
+  <div class="mb-8 flex items-center gap-4">
+    <p-button
+      icon="pi pi-arrow-left"
+      [label]="'common.back' | translate"
+      [styleClass]="'p-button-outlined'"
+      (click)="goBack()"
+    >
+    </p-button>
+    <div>
+      <h1 class="m-0 mb-3 text-3xl font-semibold text-[var(--text-color)]">
+        {{ 'devices.deviceDetails' | translate }}
+      </h1>
+      <p class="m-0 text-[var(--text-color-secondary)]">
+        {{ 'devices.deviceDetailsSubtitle' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex flex-col items-center justify-center p-12 text-center">
+    <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+    <p class="mt-4 text-[var(--text-color-secondary)]">
+      {{ 'devices.loadingDeviceDetails' | translate }}
+    </p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="mb-6">
+    <p-card>
+      <div class="flex flex-col items-center gap-4 p-4">
+        <i class="pi pi-exclamation-triangle text-5xl text-red-500"></i>
+        <p class="m-0 text-[var(--text-color)]">{{ error }}</p>
+        <div class="flex gap-3">
+          <p-button
+            [label]="'devices.tryAgain' | translate"
+            icon="pi pi-refresh"
+            (click)="refresh()"
+            [styleClass]="'p-button-outlined'"
+          >
+          </p-button>
+          <p-button
+            [label]="'devices.backToList' | translate"
+            icon="pi pi-arrow-left"
+            [styleClass]="'p-button-outlined'"
+            (click)="goBack()"
+          >
+          </p-button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Device Details -->
+  <div *ngIf="device && !loading && !error" class="flex flex-col gap-6">
+    <!-- Status Card -->
+    <p-card>
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
+        <div class="flex items-center gap-4">
+          <div
+            class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+          >
+            <i class="pi pi-server"></i>
+          </div>
+          <div>
+            <h2 class="m-0 mb-3 text-2xl font-semibold text-[var(--text-color)]">
+              {{ device.name }}
+            </h2>
+            <p-tag
+              [value]="getStatusLabel(device.status)"
+              [severity]="getStatusSeverity(device.status)"
+            >
+            </p-tag>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <p-button
+            [label]="'devices.refresh' | translate"
+            icon="pi pi-refresh"
+            [styleClass]="'p-button-outlined'"
+            (click)="refresh()"
+          >
+          </p-button>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Informações Principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Identificação -->
+      <p-card>
+        <div class="mb-6">
+          <h3
+            class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
+          >
+            <i class="pi pi-info-circle text-[var(--primary-color)]"></i>
+            {{ 'devices.identification' | translate }}
+          </h3>
+          <p-divider></p-divider>
+        </div>
+        <div class="flex flex-col gap-6 pt-2">
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.internalId' | translate
+            }}</span>
+            <span class="text-[var(--text-color)] font-mono">{{ device.id }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.publicId' | translate
+            }}</span>
+            <span class="text-[var(--text-color)] font-mono text-sm break-all">{{
+              device.public_id
+            }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.name' | translate
+            }}</span>
+            <span class="text-[var(--text-color)]">{{ device.name }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Status e Informações -->
+      <p-card>
+        <div class="mb-6">
+          <h3
+            class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
+          >
+            <i class="pi pi-cog text-[var(--primary-color)]"></i>
+            {{ 'devices.statusAndState' | translate }}
+          </h3>
+          <p-divider></p-divider>
+        </div>
+        <div class="flex flex-col gap-6 pt-2">
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.currentStatus' | translate
+            }}</span>
+            <p-tag
+              [value]="getStatusLabel(device.status)"
+              [severity]="getStatusSeverity(device.status)"
+            >
+            </p-tag>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.tableHeaders.createdAt' | translate
+            }}</span>
+            <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.lastUpdate' | translate
+            }}</span>
+            <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Descrição -->
+    <p-card *ngIf="device.description">
+      <div class="mb-6">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-file-edit text-[var(--primary-color)]"></i>
+          {{ 'devices.description' | translate }}
+        </h3>
+        <p-divider></p-divider>
+      </div>
+      <p class="m-0 pt-2 text-[var(--text-color)] leading-relaxed whitespace-pre-wrap">
+        {{ device.description }}
+      </p>
+    </p-card>
+
+    <!-- Empty Description Message -->
+    <p-card *ngIf="!device.description">
+      <div class="text-center py-8">
+        <i class="pi pi-info-circle text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+        <p class="m-0 text-[var(--text-color-secondary)]">
+          {{ 'devices.noDescriptionAvailable' | translate }}
+        </p>
+      </div>
+    </p-card>
+
+    <!-- Informações Temporais -->
+    <p-card>
+      <div class="mb-6">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-calendar text-[var(--primary-color)]"></i>
+          {{ 'devices.temporalInfo' | translate }}
+        </h3>
+        <p-divider></p-divider>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
+          <i class="pi pi-calendar-plus text-xl text-[var(--primary-color)] mt-1"></i>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.creationDate' | translate
+            }}</span>
+            <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
+          <i class="pi pi-calendar-minus text-xl text-[var(--primary-color)] mt-1"></i>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.lastModification' | translate
+            }}</span>
+            <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- WebSocket Status -->
+    <p-card>
+      <div class="mb-6">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-wifi text-[var(--primary-color)]"></i>
+          {{ 'devices.realtimeConnection' | translate }}
+        </h3>
+        <p-divider></p-divider>
+      </div>
+
+      <div class="flex flex-col gap-4 pt-2">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-[var(--text-color-secondary)]">{{
+            'devices.connectionStatus' | translate
+          }}</span>
+          <span *ngIf="wsStatus === 'connected'" class="flex items-center gap-2">
+            <i class="pi pi-check-circle text-green-500"></i>
+            <span class="text-green-600 font-medium">{{ 'devices.connected' | translate }}</span>
+          </span>
+          <span *ngIf="wsStatus === 'connecting'" class="flex items-center gap-2">
+            <i class="pi pi-spin pi-spinner text-blue-500"></i>
+            <span class="text-blue-600 font-medium">{{ 'devices.connecting' | translate }}</span>
+          </span>
+          <span *ngIf="wsStatus === 'disconnected'" class="flex items-center gap-2">
+            <i class="pi pi-times-circle text-gray-500"></i>
+            <span class="text-gray-600 font-medium">{{ 'devices.disconnected' | translate }}</span>
+          </span>
+          <span *ngIf="wsStatus === 'error'" class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-red-500"></i>
+            <span class="text-red-600 font-medium">{{
+              'devices.connectionError' | translate
+            }}</span>
+          </span>
+        </div>
+        <p class="m-0 text-xs text-[var(--text-color-secondary)]">
+          {{ 'devices.realtimeUpdates' | translate }}
+        </p>
+      </div>
+    </p-card>
+
+    <!-- Gráfico de Precisão -->
+    <p-card>
+      <div class="mb-6">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
+          {{ 'devices.chart.title' | translate }}
+        </h3>
+        <p-divider></p-divider>
+      </div>
+
+      <div class="flex flex-col gap-6 pt-2">
+        <!-- Filtros do Gráfico -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Seletor de Período -->
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.period' | translate }}
+            </label>
+            <p-dropdown
+              [(ngModel)]="selectedPeriod"
+              [options]="periodOptions"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="onPeriodChange()"
+              [placeholder]="'devices.chart.selectPeriod' | translate"
+              class="w-full"
+            >
+            </p-dropdown>
+          </div>
+
+          <!-- Seletor de Métrica -->
+          <div class="flex flex-col gap-2" *ngIf="availableMetrics.length > 0">
+            <label class="text-sm font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.metric' | translate }}
+            </label>
+            <p-dropdown
+              [(ngModel)]="selectedMetric"
+              [options]="availableMetrics"
+              (onChange)="onMetricChange()"
+              [placeholder]="'devices.chart.selectMetric' | translate"
+              class="w-full"
+            >
+            </p-dropdown>
+          </div>
+        </div>
+
+        <!-- Estatísticas Agregadas -->
+        <div *ngIf="aggregatedStats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.mean' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.mean !== null
+                  ? (aggregatedStats.mean | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.max' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.max !== null
+                  ? (aggregatedStats.max | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.min' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.min !== null
+                  ? (aggregatedStats.min | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Indicador de Regras por Métrica -->
+        <div *ngIf="availableMetrics.length > 0" class="mt-2">
+          <div class="text-sm font-medium text-[var(--text-color-secondary)] mb-2">Regras por métrica</div>
+          <div class="flex flex-wrap gap-2">
+            <div *ngFor="let m of availableMetrics" class="flex items-center gap-2 px-3 py-1 rounded-full border text-sm"
+                 [ngClass]="thresholdsByMetric[m] ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-slate-50 text-slate-600'">
+              <span class="font-semibold">{{ m }}</span>
+              <span>
+                {{ thresholdsByMetric[m] ? 'Com limite' : 'Sem limite' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading do Gráfico -->
+        <div *ngIf="chartLoading" class="flex flex-col items-center justify-center py-12">
+          <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+          <p class="mt-4 text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.loading' | translate }}
+          </p>
+        </div>
+
+        <!-- Gráfico -->
+        <div *ngIf="!chartLoading && chartData" class="w-full" style="height: 400px">
+          <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+        </div>
+
+        <!-- Mensagem quando não há dados -->
+        <div *ngIf="!chartLoading && !chartData" class="text-center py-8">
+          <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+          <p class="m-0 text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.noData' | translate }}
+          </p>
+          <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.noDataDescription' | translate }}
+          </p>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Medições Recentes -->
+    <p-card *ngIf="recentMeasurements.length > 0">
+      <div class="mb-6">
+        <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+          <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
+          {{ 'devices.recentMeasurements' | translate }}
+        </h3>
+        <p-divider></p-divider>
+      </div>
+
+      <div class="flex flex-col gap-4 pt-2">
+        <div
+          *ngFor="let measurement of recentMeasurements"
+          class="p-4 bg-[var(--surface-50)] rounded-lg border-l-4 border-[var(--primary-color)]"
+        >
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementMetric' | translate
+              }}</span>
+              <span class="text-[var(--text-color)] font-semibold mr-2">{{ measurement.metric }}</span>
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
+                    [ngClass]="thresholdsByMetric[measurement.metric] ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'">
+                {{ thresholdsByMetric[measurement.metric] ? 'Com limite' : 'Sem limite' }}
+              </span>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementValue' | translate
+              }}</span>
+              <span class="text-[var(--text-color)] text-lg font-bold"
+                >{{ measurement.value }} {{ measurement.unit }}</span
+              >
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementTimestamp' | translate
+              }}</span>
+              <span class="text-[var(--text-color)] text-sm">{{
+                formatDate(measurement.timestamp)
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Empty Measurements Message -->
+    <p-card *ngIf="wsConnected && recentMeasurements.length === 0">
+      <div class="text-center py-8">
+        <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+        <p class="m-0 text-[var(--text-color-secondary)]">
+          {{ 'devices.waitingMeasurements' | translate }}
+        </p>
+        <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
+          {{ 'devices.measurementsWillAppear' | translate }}
+        </p>
+      </div>
+    </p-card>
+  </div>
+</div>

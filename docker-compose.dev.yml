@@ -1,0 +1,28 @@
+# Docker Compose override para desenvolvimento
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      # Montar código fonte para hot-reload
+      - ./frontend/src:/app/src
+      - ./frontend/angular.json:/app/angular.json
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.app.json:/app/tsconfig.app.json
+    ports:
+      - "${FRONTEND_PORT:-4200}:4200"
+    command: npm start
+    environment:
+      - NODE_ENV=development
+    healthcheck:
+      # No modo dev, apenas verifica se o processo está rodando
+      test: ["CMD-SHELL", "pgrep -f 'ng serve' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
