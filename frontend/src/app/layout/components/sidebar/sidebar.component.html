@@ -10,7 +10,7 @@
     </div>
   </ng-template>
 
-  <p-menu [model]="menuItems" [style]="{ width: '100%', border: 'none' }"></p-menu>
+  <p-menu [model]="(menuItems$ | async) || []" [style]="{ width: '100%', border: 'none' }"></p-menu>
 
   <ng-template pTemplate="footer">
     <div class="px-5 py-4 border-t border-[var(--surface-border)] text-center">

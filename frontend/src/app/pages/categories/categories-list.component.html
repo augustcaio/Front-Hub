@@ -41,7 +41,8 @@
             [label]="'categories.newCategory' | translate"
             icon="pi pi-plus"
             [styleClass]="'p-button-primary w-full'"
-            routerLink="/categories/new">
+            routerLink="/categories/new"
+            [disabled]="!(isAdmin$ | async)">
           </p-button>
         </div>
         <div class="w-full md:w-auto [&_.p-button]:w-full">
@@ -162,14 +163,16 @@
                   [styleClass]="'p-button-outlined p-button-sm'"
                   [routerLink]="['/categories', category.id, 'edit']"
                   [pTooltip]="'common.edit' | translate"
-                  tooltipPosition="top">
+                  tooltipPosition="top"
+                  [disabled]="!(isAdmin$ | async)">
                 </p-button>
                 <p-button
                   icon="pi pi-trash"
                   [styleClass]="'p-button-danger p-button-outlined p-button-sm'"
                   (click)="confirmDelete(category)"
                   [pTooltip]="'common.delete' | translate"
-                  tooltipPosition="top">
+                  tooltipPosition="top"
+                  [disabled]="!(isAdmin$ | async)">
                 </p-button>
               </div>
             </td>

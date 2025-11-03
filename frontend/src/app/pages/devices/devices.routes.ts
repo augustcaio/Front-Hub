@@ -7,11 +7,13 @@ export const routes: Routes = [
   },
   {
     path: 'new',
-    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent)
+    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent),
+    canActivate: [() => import('../../core/guards/role.guard').then(m => m.roleGuard(['admin']))]
   },
   {
     path: ':id/edit',
-    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent)
+    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent),
+    canActivate: [() => import('../../core/guards/role.guard').then(m => m.roleGuard(['admin']))]
   },
   {
     path: ':id',
@@ -19,6 +21,7 @@ export const routes: Routes = [
   },
   {
     path: ':public_id/limits',
-    loadComponent: () => import('./device-threshold.component').then(m => m.DeviceThresholdComponent)
+    loadComponent: () => import('./device-threshold.component').then(m => m.DeviceThresholdComponent),
+    canActivate: [() => import('../../core/guards/role.guard').then(m => m.roleGuard(['admin']))]
   }
 ];

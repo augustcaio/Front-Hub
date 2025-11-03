@@ -89,7 +89,7 @@
           icon="pi pi-check"
           [styleClass]="'p-button-primary'"
           [loading]="loading"
-          [disabled]="categoryForm.invalid || loading">
+          [disabled]="categoryForm.invalid || loading || !(isAdmin$ | async)">
         </p-button>
       </div>
     </form>

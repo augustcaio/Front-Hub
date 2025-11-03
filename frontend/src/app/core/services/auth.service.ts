@@ -12,6 +12,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   access: string;
   refresh: string;
+  role?: 'admin' | 'operator' | 'visitor';
 }
 
 export interface TokenVerifyResponse {
@@ -60,9 +61,12 @@ export class AuthService {
   // Storage keys - using constants for better maintainability
   private readonly tokenKey = 'access_token';
   private readonly refreshTokenKey = 'refresh_token';
+  private readonly roleKey = 'user_role';
 
   private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
   readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private readonly roleSubject = new BehaviorSubject<'admin' | 'operator' | 'visitor' | null>(this.readRoleFromToken());
+  readonly role$ = this.roleSubject.asObservable();
 
   /**
    * Realiza login do usuário
@@ -78,6 +82,11 @@ export class AuthService {
       tap((response) => {
         this.setTokens(response.access, response.refresh);
         this.isAuthenticatedSubject.next(true);
+        // role vem no claim e também pode vir no corpo (CustomTokenObtainPairSerializer)
+        const role = response.role || this.readRoleFromToken();
+        if (role) {
+          this.setRole(role);
+        }
       }),
       catchError((error: HttpErrorResponse) => {
         return this.handleError(error);
@@ -112,6 +121,10 @@ export class AuthService {
         // Salvar tokens e atualizar estado de autenticação
         this.setTokens(response.access, response.refresh);
         this.isAuthenticatedSubject.next(true);
+        const role = this.readRoleFromToken();
+        if (role) {
+          this.setRole(role);
+        }
       }),
       catchError((error: HttpErrorResponse) => {
         return this.handleRegisterError(error);
@@ -125,6 +138,7 @@ export class AuthService {
   logout(): void {
     this.clearTokens();
     this.isAuthenticatedSubject.next(false);
+    this.roleSubject.next(null);
     this.router.navigate(['/login']);
   }
 
@@ -228,11 +242,17 @@ export class AuthService {
   private setTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(this.tokenKey, accessToken);
     localStorage.setItem(this.refreshTokenKey, refreshToken);
+    // Atualizar role a partir do token
+    const role = this.readRoleFromToken();
+    if (role) {
+      this.setRole(role);
+    }
   }
 
   private clearTokens(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshTokenKey);
+    localStorage.removeItem(this.roleKey);
   }
 
   private hasValidToken(): boolean {
@@ -249,6 +269,28 @@ export class AuthService {
     } catch {
       return false;
     }
+  }
+
+  private readRoleFromToken(): 'admin' | 'operator' | 'visitor' | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload.role as 'admin' | 'operator' | 'visitor' | undefined;
+      if (role) {
+        localStorage.setItem(this.roleKey, role);
+        return role;
+      }
+      const stored = localStorage.getItem(this.roleKey) as 'admin' | 'operator' | 'visitor' | null;
+      return stored;
+    } catch {
+      return localStorage.getItem(this.roleKey) as 'admin' | 'operator' | 'visitor' | null;
+    }
+  }
+
+  private setRole(role: 'admin' | 'operator' | 'visitor'): void {
+    localStorage.setItem(this.roleKey, role);
+    this.roleSubject.next(role);
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
