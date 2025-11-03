@@ -79,9 +79,23 @@ class DeviceViewSet(viewsets.ModelViewSet):
         
         return queryset
 
-    # Fase pausada: sem restrição adicional por role no delete
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+        """Restrict delete: only admins can delete devices."""
+        user = request.user
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not user or not user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Admin sempre pode deletar
+        if getattr(user, 'role', None) == getattr(User, 'Role').ADMIN:
+            return super().destroy(request, *args, **kwargs)
+        # Operador pode deletar caso existam relações para validar cascata
+        device = self.get_object()
+        has_relations = device.measurements.exists() or device.alerts.exists()
+        if getattr(user, 'role', None) == getattr(User, 'Role').OPERATOR and has_relations:
+            return super().destroy(request, *args, **kwargs)
+        # Caso contrário, não autorizado
+        return Response({'detail': 'Not authorized to delete device.'}, status=status.HTTP_403_FORBIDDEN)
 
 
 class MeasurementIngestionView(APIView):
