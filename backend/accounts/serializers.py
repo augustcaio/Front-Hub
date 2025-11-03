@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'role')
         read_only_fields = fields
 
 
@@ -37,7 +37,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password', 'role')
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},
@@ -55,6 +55,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             User instance
         """
         password = validated_data.pop('password')
+        # Garantir default para role se não vier no payload
+        if 'role' not in validated_data or not validated_data['role']:
+            validated_data['role'] = User.Role.OPERATOR
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
@@ -80,10 +83,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             RefreshToken instance
         """
         token = super().get_token(user)
-        
-        # Add custom claims here if needed
-        # token['custom_claim'] = user.some_field
-        
+        # Custom claim: role
+        token['role'] = user.role
         return token
     
     def validate(self, attrs):
@@ -98,12 +99,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         """
         data = super().validate(attrs)
         
-        # Add custom response data here if needed
-        # data['user'] = {
-        #     'id': self.user.id,
-        #     'username': self.user.username,
-        #     'email': self.user.email
-        # }
+        # Opcional: retornar role no corpo da resposta também
+        data['role'] = self.user.role
         
         return data
 

@@ -27,7 +27,19 @@ class User(AbstractUser):
     
     Additional customizations can be added here following SRP.
     """
-    
+    class Role(models.TextChoices):
+        ADMIN = 'admin', _('Admin')
+        OPERATOR = 'operator', _('Operator')
+        VISITOR = 'visitor', _('Visitor')
+
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.OPERATOR,
+        db_index=True,
+        help_text=_('User role for permission checks (admin, operator, visitor).')
+    )
+
     email = models.EmailField(
         _('email address'),
         unique=True,

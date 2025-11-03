@@ -8,6 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsAdminUserRole, IsOperatorOrAdminCanWriteElseReadOnly, IsAdminOrReadOnly
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Max, Min, DecimalField
 from django.utils import timezone
@@ -34,7 +35,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes: list = [IsAuthenticated]
+    permission_classes: list = [IsAdminUserRole]
     
     def get_queryset(self):
         """Return queryset ordered by name (as defined in model Meta)."""
@@ -78,6 +79,12 @@ class DeviceViewSet(viewsets.ModelViewSet):
         
         return queryset
 
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        if not (user and user.is_authenticated and getattr(user, 'role', None) == 'admin'):
+            return Response({'detail': 'Forbidden: only admin can delete devices.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
+
 
 class MeasurementIngestionView(APIView):
     """
@@ -86,7 +93,7 @@ class MeasurementIngestionView(APIView):
     Endpoint: POST /api/devices/{device_id}/measurements/
     Creates a new measurement for a specific device.
     """
-    permission_classes: list = [IsAuthenticated]
+    permission_classes: list = [IsOperatorOrAdminCanWriteElseReadOnly]
     
     def post(self, request, device_id: int) -> Response:
         """
@@ -339,7 +346,7 @@ class ThresholdViewSet(viewsets.ModelViewSet):
     - /api/devices/<public_id>/thresholds/<pk>/ [GET, PUT, PATCH, DELETE]
     """
     serializer_class = ThresholdSerializer
-    permission_classes: list = [IsAuthenticated]
+    permission_classes: list = [IsAdminUserRole]
     ordering_fields = ['metric_name', 'created_at', 'updated_at']
     ordering = ['metric_name']
 

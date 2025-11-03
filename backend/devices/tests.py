@@ -723,6 +723,9 @@ class CategoryViewSetAPITestCase(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        # Tornar este usuário admin para Category CRUD
+        self.user.role = 'admin'
+        self.user.save()
         
         self.category_data = {
             'name': 'Sensores',
@@ -743,6 +746,21 @@ class CategoryViewSetAPITestCase(APITestCase):
         response = self.client.get('/api/categories/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
+    
+    def test_visitor_can_only_read_categories(self):
+        visitor = User.objects.create_user(
+            username='visitor', email='visitor@example.com', password='testpass123'
+        )
+        visitor.role = 'visitor'
+        visitor.save()
+        vrefresh = RefreshToken.for_user(visitor)
+        vclient = APIClient()
+        vclient.credentials(HTTP_AUTHORIZATION=f'Bearer {str(vrefresh.access_token)}')
+        Category.objects.create(name='C1')
+        read_resp = vclient.get('/api/categories/')
+        self.assertEqual(read_resp.status_code, status.HTTP_200_OK)
+        create_resp = vclient.post('/api/categories/', {'name': 'C2'}, format='json')
+        self.assertEqual(create_resp.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_create_category_requires_authentication(self):
         """Test that creating category requires JWT authentication."""
@@ -870,6 +888,9 @@ class DeviceViewSetAPITestCase(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        # Este usuário permanece operator (padrão)
+        self.user.role = 'operator'
+        self.user.save()
         
         # Criar categoria para testes
         self.category = Category.objects.create(
@@ -1049,21 +1070,55 @@ class DeviceViewSetAPITestCase(APITestCase):
         response = self.client.delete(f'/api/devices/{device.id}/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
-    def test_delete_device_with_authentication(self):
-        """Test deleting a device with valid JWT token."""
-        device = Device.objects.create(**{
-            'name': 'Device To Delete',
-            'category': self.category,
-            'status': Device.Status.ACTIVE
-        })
-        device_id = device.id
-        
+    def test_operator_cannot_delete_device(self):
+        device = Device.objects.create(
+            name='To Delete',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
         response = self.client.delete(f'/api/devices/{device.id}/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        
-        # Verificar que foi deletado
-        self.assertFalse(Device.objects.filter(id=device_id).exists())
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
+    def test_admin_can_delete_device(self):
+        admin = User.objects.create_user(
+            username='adminu', email='admin@example.com', password='testpass123'
+        )
+        admin.role = 'admin'
+        admin.save()
+        arefresh = RefreshToken.for_user(admin)
+        aclient = APIClient()
+        aclient.credentials(HTTP_AUTHORIZATION=f'Bearer {str(arefresh.access_token)}')
+        device = Device.objects.create(
+            name='Admin Delete',
+            category=self.category,
+            status=Device.Status.ACTIVE
+        )
+        resp = aclient.delete(f'/api/devices/{device.id}/')
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+    
+    def test_measurement_ingestion_role_permissions(self):
+        device = Device.objects.create(name='D1', category=self.category, status=Device.Status.ACTIVE)
+        payload = {
+            'metric': 'temperature',
+            'value': '25.5',
+            'unit': '°C',
+            'timestamp': timezone.now().isoformat(),
+        }
+        # operator (self.user) pode postar
+        resp_op = self.client.post(f'/api/devices/{device.id}/measurements/', payload, format='json')
+        self.assertIn(resp_op.status_code, [status.HTTP_201_CREATED, status.HTTP_200_OK])
+        # visitor não pode postar
+        visitor = User.objects.create_user(
+            username='v2', email='v2@example.com', password='testpass123'
+        )
+        visitor.role = 'visitor'
+        visitor.save()
+        vrefresh = RefreshToken.for_user(visitor)
+        vclient = APIClient()
+        vclient.credentials(HTTP_AUTHORIZATION=f'Bearer {str(vrefresh.access_token)}')
+        resp_vi = vclient.post(f'/api/devices/{device.id}/measurements/', payload, format='json')
+        self.assertEqual(resp_vi.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_delete_device_cascades_to_measurements(self):
         """Test that deleting a device cascades to its measurements."""
         device = Device.objects.create(**{
