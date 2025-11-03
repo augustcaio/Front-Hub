@@ -17,8 +17,12 @@ import { DropdownModule } from 'primeng/dropdown';
 import { PaginatorModule } from 'primeng/paginator';
 import { CardModule } from 'primeng/card';
 import { ToolbarModule } from 'primeng/toolbar';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DeviceService, Device, DeviceListResponse } from '../../core/services/device.service';
+import { DeviceService, Device, DeviceListResponse, Category } from '../../core/services/device.service';
 import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
 import { formatDateTime } from '../../core/utils/date.utils';
 
@@ -44,7 +48,11 @@ interface StatusOption {
     PaginatorModule,
     CardModule,
     ToolbarModule,
+    ConfirmDialogModule,
+    ToastModule,
+    TooltipModule,
   ],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './devices-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -52,6 +60,8 @@ export class DevicesListComponent implements OnInit {
   private readonly deviceService = inject(DeviceService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly translate = inject(TranslateService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   loading = true;
   error: string | null = null;
@@ -62,15 +72,21 @@ export class DevicesListComponent implements OnInit {
 
   searchText = '';
   selectedStatus: string | null = null;
+  selectedCategory: number | null = null;
 
   statusOptions: StatusOption[] = [];
+  categories: Category[] = [];
+  categoryOptions: { label: string; value: number | null }[] = [];
+  loadingCategories = false;
 
   ngOnInit(): void {
     this.updateStatusOptions();
     this.translate.onLangChange.subscribe(() => {
       this.updateStatusOptions();
+      this.updateCategoryOptions();
       this.cdr.markForCheck();
     });
+    this.loadCategories();
     this.loadDevices();
   }
 
@@ -82,6 +98,32 @@ export class DevicesListComponent implements OnInit {
       { label: this.translate.instant('devices.statusOptions.maintenance'), value: 'maintenance' },
       { label: this.translate.instant('devices.statusOptions.error'), value: 'error' },
     ];
+  }
+
+  private updateCategoryOptions(): void {
+    this.categoryOptions = [
+      { label: this.translate.instant('devices.allCategories'), value: null },
+      ...this.categories.map((cat) => ({
+        label: cat.name,
+        value: cat.id,
+      })),
+    ];
+  }
+
+  loadCategories(): void {
+    this.loadingCategories = true;
+    this.deviceService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        this.updateCategoryOptions();
+        this.loadingCategories = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingCategories = false;
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   loadDevices(): void {
@@ -97,6 +139,13 @@ export class DevicesListComponent implements OnInit {
         if (this.selectedStatus) {
           filteredDevices = filteredDevices.filter(
             (device) => device.status === this.selectedStatus
+          );
+        }
+
+        // Filtrar por categoria
+        if (this.selectedCategory) {
+          filteredDevices = filteredDevices.filter(
+            (device) => device.category === this.selectedCategory
           );
         }
 
@@ -129,6 +178,11 @@ export class DevicesListComponent implements OnInit {
     this.loadDevices();
   }
 
+  onCategoryChange(): void {
+    this.first = 0; // Reset paginação
+    this.loadDevices();
+  }
+
   onSearch(): void {
     this.first = 0; // Reset paginação
     this.loadDevices();
@@ -136,6 +190,8 @@ export class DevicesListComponent implements OnInit {
 
   clearSearch(): void {
     this.searchText = '';
+    this.selectedStatus = null;
+    this.selectedCategory = null;
     this.onSearch();
   }
 
@@ -164,5 +220,42 @@ export class DevicesListComponent implements OnInit {
 
   refresh(): void {
     this.loadDevices();
+  }
+
+  confirmDelete(device: Device): void {
+    this.confirmationService.confirm({
+      message: this.translate.instant('devices.deleteConfirmMessage', { name: device.name }),
+      header: this.translate.instant('devices.deleteConfirm'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.deleteDevice(device.id);
+      },
+    });
+  }
+
+  deleteDevice(id: number): void {
+    this.loading = true;
+    this.cdr.markForCheck();
+
+    this.deviceService.deleteDevice(id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('devices.deleteSuccess'),
+          detail: this.translate.instant('devices.deviceDeleted'),
+        });
+        this.loadDevices();
+      },
+      error: (error: Error) => {
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('devices.deleteError'),
+          detail: error.message || this.translate.instant('common.error'),
+        });
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

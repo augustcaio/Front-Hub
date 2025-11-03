@@ -139,6 +139,8 @@
     "subtitle": "Gerencie seus dispositivos IoT",
     "searchPlaceholder": "Buscar por nome, ID ou descrição...",
     "filterByStatus": "Filtrar por status",
+    "filterByCategory": "Filtrar por categoria",
+    "allCategories": "Todas as categorias",
     "clearFilters": "Limpar Filtros",
     "refresh": "Atualizar",
     "loadingDeviceDetails": "Carregando detalhes do dispositivo...",

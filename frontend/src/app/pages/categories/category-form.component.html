@@ -1,7 +1,7 @@
 <div class="p-4 max-w-[800px] mx-auto">
   <!-- Header -->
   <div class="mb-6">
-    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+    <h1 class="m-0 mb-3 text-3xl font-semibold text-[var(--text-color)]">
       {{ (isEditMode ? 'categories.editCategory' : 'categories.newCategory') | translate }}
     </h1>
     <p class="m-0 text-[var(--text-color-secondary)]">
@@ -74,7 +74,7 @@
       </div>
 
       <!-- Form Actions -->
-      <div class="flex gap-2 justify-end mt-6">
+      <div class="flex gap-3 justify-end mt-6">
         <p-button
           type="button"
           [label]="'common.cancel' | translate"

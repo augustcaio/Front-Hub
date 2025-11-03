@@ -4,49 +4,59 @@
 @tailwind utilities;
 
 /* PrimeNG Theme - Mantém compatibilidade */
-@import "node_modules/primeng/resources/themes/lara-light-blue/theme.css";
-@import "node_modules/primeng/resources/primeng.min.css";
-@import "node_modules/primeicons/primeicons.css";
+@import 'node_modules/primeng/resources/themes/lara-light-blue/theme.css';
+@import 'node_modules/primeng/resources/primeng.min.css';
+@import 'node_modules/primeicons/primeicons.css';
 
-/* Global Styles - Front-Hub */
+/* Global Styles via Tailwind @layer base */
+@layer base {
+  * {
+    @apply box-border;
+  }
 
-/* Reset e base */
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-family);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-color);
-  background-color: var(--surface-ground);
-}
-
-/* Mobile-first: base font size menor */
-@media (min-width: 768px) {
+  html,
   body {
-    font-size: 16px;
+    @apply h-full m-0 p-0 text-sm leading-normal;
+    font-family: var(--font-family);
+    color: var(--text-color);
+    background-color: var(--surface-ground);
+  }
+
+  @media (min-width: 768px) {
+    body {
+      @apply text-base;
+    }
+  }
+
+  a {
+    @apply no-underline transition-colors;
+    color: var(--primary-color);
+  }
+
+  a:hover {
+    @apply underline;
+    color: var(--primary-color);
   }
 }
 
-/* Links */
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.2s;
+/* Utility classes via Tailwind @layer components */
+@layer components {
+  .container {
+    @apply w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8;
+  }
 }
 
-a:hover {
-  color: var(--primary-color);
-  text-decoration: underline;
-}
+/* Espaçamentos para componentes PrimeNG via Tailwind utilities */
+@layer utilities {
+  .p-table-spacing {
+    @apply py-3.5 px-4;
+  }
 
-/* Utilities */
-.container {
-  @apply w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8;
+  .p-toolbar-spacing {
+    @apply p-4 px-5;
+  }
+
+  .p-card-body-spacing {
+    @apply p-6;
+  }
 }

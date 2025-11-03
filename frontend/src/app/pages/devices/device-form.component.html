@@ -1,7 +1,7 @@
 <div class="p-4 max-w-[800px] mx-auto">
   <!-- Header -->
   <div class="mb-6">
-    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+    <h1 class="m-0 mb-3 text-3xl font-semibold text-[var(--text-color)]">
       {{ isEditMode ? ('devices.editDevice' | translate) : ('devices.newDevice' | translate) }}
     </h1>
     <p class="m-0 text-[var(--text-color-secondary)]">
@@ -10,7 +10,7 @@
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="loading && !deviceForm.value.name" class="flex flex-col items-center justify-center p-12 text-center">
+  <div *ngIf="loading && isEditMode && !deviceForm.value.name" class="flex flex-col items-center justify-center p-12 text-center">
     <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
     <p class="mt-4 text-[var(--text-color-secondary)]">
       {{ isEditMode ? ('devices.loadingDevice' | translate) : ('devices.loadingState' | translate) }}
@@ -33,7 +33,7 @@
     <form [formGroup]="deviceForm" (ngSubmit)="onSubmit()">
       <!-- Name Field -->
       <div class="mb-4">
-        <label for="name" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+        <label for="name" class="block mb-2 font-semibold text-[var(--text-color)]">
           {{ 'devices.deviceName' | translate }} <span class="text-red-500">*</span>
         </label>
         <input
@@ -44,20 +44,17 @@
           [placeholder]="'devices.namePlaceholder' | translate"
           class="w-full"
           [class.ng-invalid]="name?.invalid && name?.touched"
-          [class.ng-valid]="name?.valid && name?.touched"
         />
-        <ng-container *ngIf="name?.invalid && name?.touched">
-          <small class="text-red-500 text-xs block mt-1">
-            <span *ngIf="name?.errors?.['required']">{{ 'devices.nameRequired' | translate }}</span>
-            <span *ngIf="name?.errors?.['minlength']">{{ 'devices.nameMinLength' | translate }}</span>
-            <span *ngIf="name?.errors?.['maxlength']">{{ 'devices.nameMaxLength' | translate }}</span>
-          </small>
-        </ng-container>
+        <small *ngIf="name?.invalid && name?.touched" class="text-red-500 block mt-1">
+          <span *ngIf="name?.errors?.['required']">{{ 'devices.nameRequired' | translate }}</span>
+          <span *ngIf="name?.errors?.['minlength']">{{ 'devices.nameMinLength' | translate }}</span>
+          <span *ngIf="name?.errors?.['maxlength']">{{ 'devices.nameMaxLength' | translate }}</span>
+        </small>
       </div>
 
       <!-- Category Field -->
       <div class="mb-4">
-        <label for="category" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+        <label for="category" class="block mb-2 font-semibold text-[var(--text-color)]">
           {{ 'devices.category' | translate }}
         </label>
         <p-dropdown
@@ -70,10 +67,9 @@
           [disabled]="loadingCategories"
           [style]="{ width: '100%' }"
           [showClear]="true"
-          [class.ng-invalid]="category?.invalid && category?.touched"
-          [class.ng-valid]="category?.valid && category?.touched">
+          [class.ng-invalid]="category?.invalid && category?.touched">
         </p-dropdown>
-        <small class="text-[var(--text-color-secondary)] text-xs block mt-1">
+        <small class="text-[var(--text-color-secondary)] block mt-1">
           <span *ngIf="loadingCategories">{{ 'devices.loadingCategories' | translate }}</span>
           <span *ngIf="!loadingCategories">{{ 'devices.categoryOptional' | translate }}</span>
         </small>
@@ -81,7 +77,7 @@
 
       <!-- Status Field -->
       <div class="mb-4">
-        <label for="status" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+        <label for="status" class="block mb-2 font-semibold text-[var(--text-color)]">
           {{ 'devices.status' | translate }} <span class="text-red-500">*</span>
         </label>
         <p-dropdown
@@ -92,19 +88,16 @@
           optionValue="value"
           [placeholder]="'devices.selectStatus' | translate"
           [style]="{ width: '100%' }"
-          [class.ng-invalid]="status?.invalid && status?.touched"
-          [class.ng-valid]="status?.valid && status?.touched">
+          [class.ng-invalid]="status?.invalid && status?.touched">
         </p-dropdown>
-        <ng-container *ngIf="status?.invalid && status?.touched">
-          <small class="text-red-500 text-xs block mt-1">
-            <span *ngIf="status?.errors?.['required']">{{ 'devices.statusRequired' | translate }}</span>
-          </small>
-        </ng-container>
+        <small *ngIf="status?.invalid && status?.touched" class="text-red-500 block mt-1">
+          <span *ngIf="status?.errors?.['required']">{{ 'devices.statusRequired' | translate }}</span>
+        </small>
       </div>
 
       <!-- Description Field -->
-      <div class="mb-6">
-        <label for="description" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+      <div class="mb-4">
+        <label for="description" class="block mb-2 font-semibold text-[var(--text-color)]">
           {{ 'devices.description' | translate }}
         </label>
         <textarea
@@ -114,18 +107,15 @@
           [placeholder]="'devices.descriptionPlaceholder' | translate"
           [rows]="4"
           class="w-full"
-          [class.ng-invalid]="description?.invalid && description?.touched"
-          [class.ng-valid]="description?.valid && description?.touched">
+          [class.ng-invalid]="description?.invalid && description?.touched">
         </textarea>
-        <ng-container *ngIf="description?.invalid && description?.touched">
-          <small class="text-red-500 text-xs block mt-1">
-            <span *ngIf="description?.errors?.['maxlength']">{{ 'devices.descriptionMaxLength' | translate }}</span>
-          </small>
-        </ng-container>
+        <small *ngIf="description?.invalid && description?.touched" class="text-red-500 block mt-1">
+          <span *ngIf="description?.errors?.['maxlength']">{{ 'devices.descriptionMaxLength' | translate }}</span>
+        </small>
       </div>
 
       <!-- Form Actions -->
-      <div class="flex flex-wrap gap-3 justify-end pt-4 border-t border-[var(--surface-border)]">
+      <div class="flex gap-3 justify-end mt-6">
         <p-button
           type="button"
           [label]="'common.cancel' | translate"
@@ -139,7 +129,8 @@
           [label]="isEditMode ? ('common.update' | translate) : ('common.create' | translate)"
           [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
           [loading]="loading"
-          [disabled]="deviceForm.invalid || loading">
+          [disabled]="deviceForm.invalid || loading"
+          [styleClass]="'p-button-primary'">
         </p-button>
       </div>
     </form>

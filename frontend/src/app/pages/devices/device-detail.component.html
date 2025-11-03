@@ -9,17 +9,21 @@
     >
     </p-button>
     <div>
-      <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+      <h1 class="m-0 mb-3 text-3xl font-semibold text-[var(--text-color)]">
         {{ 'devices.deviceDetails' | translate }}
       </h1>
-      <p class="m-0 text-[var(--text-color-secondary)]">{{ 'devices.deviceDetailsSubtitle' | translate }}</p>
+      <p class="m-0 text-[var(--text-color-secondary)]">
+        {{ 'devices.deviceDetailsSubtitle' | translate }}
+      </p>
     </div>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading" class="flex flex-col items-center justify-center p-12 text-center">
     <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
-    <p class="mt-4 text-[var(--text-color-secondary)]">{{ 'devices.loadingDeviceDetails' | translate }}</p>
+    <p class="mt-4 text-[var(--text-color-secondary)]">
+      {{ 'devices.loadingDeviceDetails' | translate }}
+    </p>
   </div>
 
   <!-- Error State -->
@@ -28,7 +32,7 @@
       <div class="flex flex-col items-center gap-4 p-4">
         <i class="pi pi-exclamation-triangle text-5xl text-red-500"></i>
         <p class="m-0 text-[var(--text-color)]">{{ error }}</p>
-        <div class="flex gap-2">
+        <div class="flex gap-3">
           <p-button
             [label]="'devices.tryAgain' | translate"
             icon="pi pi-refresh"
@@ -52,7 +56,7 @@
   <div *ngIf="device && !loading && !error" class="flex flex-col gap-6">
     <!-- Status Card -->
     <p-card>
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-2">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
         <div class="flex items-center gap-4">
           <div
             class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white"
@@ -60,7 +64,7 @@
             <i class="pi pi-server"></i>
           </div>
           <div>
-            <h2 class="m-0 mb-2 text-2xl font-semibold text-[var(--text-color)]">
+            <h2 class="m-0 mb-3 text-2xl font-semibold text-[var(--text-color)]">
               {{ device.name }}
             </h2>
             <p-tag
@@ -70,7 +74,7 @@
             </p-tag>
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-3">
           <p-button
             [label]="'devices.refresh' | translate"
             icon="pi pi-refresh"
@@ -97,21 +101,23 @@
         </div>
         <div class="flex flex-col gap-6 pt-2">
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.internalId' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.internalId' | translate
+            }}</span>
             <span class="text-[var(--text-color)] font-mono">{{ device.id }}</span>
           </div>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.publicId' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.publicId' | translate
+            }}</span>
             <span class="text-[var(--text-color)] font-mono text-sm break-all">{{
               device.public_id
             }}</span>
           </div>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{ 'devices.name' | translate }}</span>
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.name' | translate
+            }}</span>
             <span class="text-[var(--text-color)]">{{ device.name }}</span>
           </div>
         </div>
@@ -130,9 +136,9 @@
         </div>
         <div class="flex flex-col gap-6 pt-2">
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.currentStatus' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.currentStatus' | translate
+            }}</span>
             <p-tag
               [value]="getStatusLabel(device.status)"
               [severity]="getStatusSeverity(device.status)"
@@ -140,15 +146,15 @@
             </p-tag>
           </div>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.tableHeaders.createdAt' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.tableHeaders.createdAt' | translate
+            }}</span>
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.lastUpdate' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.lastUpdate' | translate
+            }}</span>
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
         </div>
@@ -192,18 +198,18 @@
         <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
           <i class="pi pi-calendar-plus text-xl text-[var(--primary-color)] mt-1"></i>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.creationDate' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.creationDate' | translate
+            }}</span>
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
         </div>
         <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
           <i class="pi pi-calendar-minus text-xl text-[var(--primary-color)] mt-1"></i>
           <div class="flex flex-col gap-2">
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
-              >{{ 'devices.lastModification' | translate }}</span
-            >
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">{{
+              'devices.lastModification' | translate
+            }}</span>
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
         </div>
@@ -222,7 +228,9 @@
 
       <div class="flex flex-col gap-4 pt-2">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-[var(--text-color-secondary)]">{{ 'devices.connectionStatus' | translate }}</span>
+          <span class="text-sm font-medium text-[var(--text-color-secondary)]">{{
+            'devices.connectionStatus' | translate
+          }}</span>
           <span *ngIf="wsStatus === 'connected'" class="flex items-center gap-2">
             <i class="pi pi-check-circle text-green-500"></i>
             <span class="text-green-600 font-medium">{{ 'devices.connected' | translate }}</span>
@@ -237,7 +245,9 @@
           </span>
           <span *ngIf="wsStatus === 'error'" class="flex items-center gap-2">
             <i class="pi pi-exclamation-triangle text-red-500"></i>
-            <span class="text-red-600 font-medium">{{ 'devices.connectionError' | translate }}</span>
+            <span class="text-red-600 font-medium">{{
+              'devices.connectionError' | translate
+            }}</span>
           </span>
         </div>
         <p class="m-0 text-xs text-[var(--text-color-secondary)]">
@@ -258,7 +268,7 @@
 
       <div class="flex flex-col gap-6 pt-2">
         <!-- Filtros do Gráfico -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <!-- Seletor de Período -->
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-[var(--text-color-secondary)]">
@@ -375,23 +385,23 @@
         >
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex-1 min-w-[200px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >{{ 'devices.measurementMetric' | translate }}</span
-              >
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementMetric' | translate
+              }}</span>
               <span class="text-[var(--text-color)] font-semibold">{{ measurement.metric }}</span>
             </div>
             <div class="flex-1 min-w-[150px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >{{ 'devices.measurementValue' | translate }}</span
-              >
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementValue' | translate
+              }}</span>
               <span class="text-[var(--text-color)] text-lg font-bold"
                 >{{ measurement.value }} {{ measurement.unit }}</span
               >
             </div>
             <div class="flex-1 min-w-[200px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
-                >{{ 'devices.measurementTimestamp' | translate }}</span
-              >
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
+                'devices.measurementTimestamp' | translate
+              }}</span>
               <span class="text-[var(--text-color)] text-sm">{{
                 formatDate(measurement.timestamp)
               }}</span>
@@ -405,7 +415,9 @@
     <p-card *ngIf="wsConnected && recentMeasurements.length === 0">
       <div class="text-center py-8">
         <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
-        <p class="m-0 text-[var(--text-color-secondary)]">{{ 'devices.waitingMeasurements' | translate }}</p>
+        <p class="m-0 text-[var(--text-color-secondary)]">
+          {{ 'devices.waitingMeasurements' | translate }}
+        </p>
         <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
           {{ 'devices.measurementsWillAppear' | translate }}
         </p>
