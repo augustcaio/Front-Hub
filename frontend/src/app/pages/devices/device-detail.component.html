@@ -1,14 +1,17 @@
-<div class="p-4 max-w-[1400px] mx-auto">
+<div class="p-6 max-w-[1400px] mx-auto">
   <!-- Header com Botão Voltar -->
-  <div class="mb-6 flex items-center gap-4">
+  <div class="mb-8 flex items-center gap-4">
     <p-button
       icon="pi pi-arrow-left"
       label="Voltar"
       [styleClass]="'p-button-outlined'"
-      (click)="goBack()">
+      (click)="goBack()"
+    >
     </p-button>
     <div>
-      <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">Detalhes do Dispositivo</h1>
+      <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+        Detalhes do Dispositivo
+      </h1>
       <p class="m-0 text-[var(--text-color-secondary)]">Informações completas do dispositivo</p>
     </div>
   </div>
@@ -20,7 +23,7 @@
   </div>
 
   <!-- Error State -->
-  <div *ngIf="error && !loading" class="mb-4">
+  <div *ngIf="error && !loading" class="mb-6">
     <p-card>
       <div class="flex flex-col items-center gap-4 p-4">
         <i class="pi pi-exclamation-triangle text-5xl text-red-500"></i>
@@ -30,13 +33,15 @@
             label="Tentar novamente"
             icon="pi pi-refresh"
             (click)="refresh()"
-            [styleClass]="'p-button-outlined'">
+            [styleClass]="'p-button-outlined'"
+          >
           </p-button>
           <p-button
             label="Voltar para Lista"
             icon="pi pi-arrow-left"
             [styleClass]="'p-button-outlined'"
-            (click)="goBack()">
+            (click)="goBack()"
+          >
           </p-button>
         </div>
       </div>
@@ -44,19 +49,24 @@
   </div>
 
   <!-- Device Details -->
-  <div *ngIf="device && !loading && !error">
+  <div *ngIf="device && !loading && !error" class="flex flex-col gap-6">
     <!-- Status Card -->
-    <p-card class="mb-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <p-card>
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-2">
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div
+            class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+          >
             <i class="pi pi-server"></i>
           </div>
           <div>
-            <h2 class="m-0 mb-1 text-2xl font-semibold text-[var(--text-color)]">{{ device.name }}</h2>
+            <h2 class="m-0 mb-2 text-2xl font-semibold text-[var(--text-color)]">
+              {{ device.name }}
+            </h2>
             <p-tag
               [value]="getStatusLabel(device.status)"
-              [severity]="getStatusSeverity(device.status)">
+              [severity]="getStatusSeverity(device.status)"
+            >
             </p-tag>
           </div>
         </div>
@@ -65,34 +75,43 @@
             label="Atualizar"
             icon="pi pi-refresh"
             [styleClass]="'p-button-outlined'"
-            (click)="refresh()">
+            (click)="refresh()"
+          >
           </p-button>
         </div>
       </div>
     </p-card>
 
     <!-- Informações Principais -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Identificação -->
       <p-card>
-        <div class="mb-4">
-          <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+        <div class="mb-6">
+          <h3
+            class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
+          >
             <i class="pi pi-info-circle text-[var(--primary-color)]"></i>
             Identificação
           </h3>
           <p-divider></p-divider>
         </div>
-        <div class="flex flex-col gap-4">
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">ID Interno</span>
+        <div class="flex flex-col gap-6 pt-2">
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >ID Interno</span
+            >
             <span class="text-[var(--text-color)] font-mono">{{ device.id }}</span>
           </div>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">ID Público</span>
-            <span class="text-[var(--text-color)] font-mono text-sm break-all">{{ device.public_id }}</span>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >ID Público</span
+            >
+            <span class="text-[var(--text-color)] font-mono text-sm break-all">{{
+              device.public_id
+            }}</span>
           </div>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">Nome</span>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]">Nome</span>
             <span class="text-[var(--text-color)]">{{ device.name }}</span>
           </div>
         </div>
@@ -100,27 +119,36 @@
 
       <!-- Status e Informações -->
       <p-card>
-        <div class="mb-4">
-          <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
+        <div class="mb-6">
+          <h3
+            class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2"
+          >
             <i class="pi pi-cog text-[var(--primary-color)]"></i>
             Status e Estado
           </h3>
           <p-divider></p-divider>
         </div>
-        <div class="flex flex-col gap-4">
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-2">Status Atual</span>
+        <div class="flex flex-col gap-6 pt-2">
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >Status Atual</span
+            >
             <p-tag
               [value]="getStatusLabel(device.status)"
-              [severity]="getStatusSeverity(device.status)">
+              [severity]="getStatusSeverity(device.status)"
+            >
             </p-tag>
           </div>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">Criado em</span>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >Criado em</span
+            >
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">Última Atualização</span>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >Última Atualização</span
+            >
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
         </div>
@@ -128,46 +156,54 @@
     </div>
 
     <!-- Descrição -->
-    <p-card *ngIf="device.description" class="mb-4">
-      <div class="mb-4">
+    <p-card *ngIf="device.description">
+      <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-file-edit text-[var(--primary-color)]"></i>
           Descrição
         </h3>
         <p-divider></p-divider>
       </div>
-      <p class="m-0 text-[var(--text-color)] leading-relaxed whitespace-pre-wrap">{{ device.description }}</p>
+      <p class="m-0 pt-2 text-[var(--text-color)] leading-relaxed whitespace-pre-wrap">
+        {{ device.description }}
+      </p>
     </p-card>
 
     <!-- Empty Description Message -->
-    <p-card *ngIf="!device.description" class="mb-4">
+    <p-card *ngIf="!device.description">
       <div class="text-center py-8">
         <i class="pi pi-info-circle text-4xl text-[var(--text-color-secondary)] mb-4"></i>
-        <p class="m-0 text-[var(--text-color-secondary)]">Nenhuma descrição disponível para este dispositivo.</p>
+        <p class="m-0 text-[var(--text-color-secondary)]">
+          Nenhuma descrição disponível para este dispositivo.
+        </p>
       </div>
     </p-card>
 
-    <!-- Informações Adicionais -->
+    <!-- Informações Temporais -->
     <p-card>
-      <div class="mb-4">
+      <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-calendar text-[var(--primary-color)]"></i>
           Informações Temporais
         </h3>
         <p-divider></p-divider>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex items-start gap-3 p-3 bg-[var(--surface-50)] rounded-lg">
-          <i class="pi pi-calendar-plus text-xl text-[var(--primary-color)]"></i>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">Data de Criação</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
+          <i class="pi pi-calendar-plus text-xl text-[var(--primary-color)] mt-1"></i>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >Data de Criação</span
+            >
             <span class="text-[var(--text-color)]">{{ formatDate(device.created_at) }}</span>
           </div>
         </div>
-        <div class="flex items-start gap-3 p-3 bg-[var(--surface-50)] rounded-lg">
-          <i class="pi pi-calendar-minus text-xl text-[var(--primary-color)]"></i>
-          <div>
-            <span class="block text-sm font-medium text-[var(--text-color-secondary)] mb-1">Última Modificação</span>
+        <div class="flex items-start gap-4 p-4 bg-[var(--surface-50)] rounded-lg">
+          <i class="pi pi-calendar-minus text-xl text-[var(--primary-color)] mt-1"></i>
+          <div class="flex flex-col gap-2">
+            <span class="block text-sm font-medium text-[var(--text-color-secondary)]"
+              >Última Modificação</span
+            >
             <span class="text-[var(--text-color)]">{{ formatDate(device.updated_at) }}</span>
           </div>
         </div>
@@ -176,16 +212,16 @@
 
     <!-- WebSocket Status -->
     <p-card>
-      <div class="mb-4">
+      <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-wifi text-[var(--primary-color)]"></i>
           Conexão em Tempo Real
         </h3>
         <p-divider></p-divider>
       </div>
-      
-      <div class="mb-4">
-        <div class="flex items-center gap-2 mb-2">
+
+      <div class="flex flex-col gap-4 pt-2">
+        <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-[var(--text-color-secondary)]">Status:</span>
           <span *ngIf="wsStatus === 'connected'" class="flex items-center gap-2">
             <i class="pi pi-check-circle text-green-500"></i>
@@ -211,8 +247,8 @@
     </p-card>
 
     <!-- Gráfico de Precisão -->
-    <p-card class="mb-4">
-      <div class="mb-4">
+    <p-card>
+      <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
           {{ 'devices.chart.title' | translate }}
@@ -220,118 +256,145 @@
         <p-divider></p-divider>
       </div>
 
-      <!-- Filtros do Gráfico -->
-      <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Seletor de Período -->
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-[var(--text-color-secondary)]">
-            {{ 'devices.chart.period' | translate }}
-          </label>
-          <p-dropdown 
-            [(ngModel)]="selectedPeriod" 
-            [options]="periodOptions" 
-            optionLabel="label" 
-            optionValue="value"
-            (onChange)="onPeriodChange()"
-            [placeholder]="'devices.chart.selectPeriod' | translate"
-            class="w-full">
-          </p-dropdown>
+      <div class="flex flex-col gap-6 pt-2">
+        <!-- Filtros do Gráfico -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Seletor de Período -->
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.period' | translate }}
+            </label>
+            <p-dropdown
+              [(ngModel)]="selectedPeriod"
+              [options]="periodOptions"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="onPeriodChange()"
+              [placeholder]="'devices.chart.selectPeriod' | translate"
+              class="w-full"
+            >
+            </p-dropdown>
+          </div>
+
+          <!-- Seletor de Métrica -->
+          <div class="flex flex-col gap-2" *ngIf="availableMetrics.length > 0">
+            <label class="text-sm font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.metric' | translate }}
+            </label>
+            <p-dropdown
+              [(ngModel)]="selectedMetric"
+              [options]="availableMetrics"
+              (onChange)="onMetricChange()"
+              [placeholder]="'devices.chart.selectMetric' | translate"
+              class="w-full"
+            >
+            </p-dropdown>
+          </div>
         </div>
 
-        <!-- Seletor de Métrica -->
-        <div class="flex flex-col gap-2" *ngIf="availableMetrics.length > 0">
-          <label class="text-sm font-medium text-[var(--text-color-secondary)]">
-            {{ 'devices.chart.metric' | translate }}
-          </label>
-          <p-dropdown 
-            [(ngModel)]="selectedMetric" 
-            [options]="availableMetrics" 
-            (onChange)="onMetricChange()"
-            [placeholder]="'devices.chart.selectMetric' | translate"
-            class="w-full">
-          </p-dropdown>
+        <!-- Estatísticas Agregadas -->
+        <div *ngIf="aggregatedStats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.mean' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.mean !== null
+                  ? (aggregatedStats.mean | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.max' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.max !== null
+                  ? (aggregatedStats.max | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
+          <div class="p-4 bg-[var(--surface-50)] rounded-lg flex flex-col gap-2">
+            <span class="block text-xs font-medium text-[var(--text-color-secondary)]">
+              {{ 'devices.chart.stats.min' | translate }}
+            </span>
+            <span class="text-[var(--text-color)] text-lg font-bold">
+              {{
+                aggregatedStats.min !== null
+                  ? (aggregatedStats.min | number : '1.2-2') + ' ' + chartUnit
+                  : 'N/A'
+              }}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Estatísticas Agregadas -->
-      <div *ngIf="aggregatedStats" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
-          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">
-            {{ 'devices.chart.stats.mean' | translate }}
-          </span>
-          <span class="text-[var(--text-color)] text-lg font-bold">
-            {{ aggregatedStats.mean !== null ? (aggregatedStats.mean | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
-          </span>
+        <!-- Loading do Gráfico -->
+        <div *ngIf="chartLoading" class="flex flex-col items-center justify-center py-12">
+          <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+          <p class="mt-4 text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.loading' | translate }}
+          </p>
         </div>
-        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
-          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">
-            {{ 'devices.chart.stats.max' | translate }}
-          </span>
-          <span class="text-[var(--text-color)] text-lg font-bold">
-            {{ aggregatedStats.max !== null ? (aggregatedStats.max | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
-          </span>
+
+        <!-- Gráfico -->
+        <div *ngIf="!chartLoading && chartData" class="w-full" style="height: 400px">
+          <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
         </div>
-        <div class="p-3 bg-[var(--surface-50)] rounded-lg">
-          <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">
-            {{ 'devices.chart.stats.min' | translate }}
-          </span>
-          <span class="text-[var(--text-color)] text-lg font-bold">
-            {{ aggregatedStats.min !== null ? (aggregatedStats.min | number:'1.2-2') + ' ' + chartUnit : 'N/A' }}
-          </span>
+
+        <!-- Mensagem quando não há dados -->
+        <div *ngIf="!chartLoading && !chartData" class="text-center py-8">
+          <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
+          <p class="m-0 text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.noData' | translate }}
+          </p>
+          <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
+            {{ 'devices.chart.noDataDescription' | translate }}
+          </p>
         </div>
-      </div>
-
-      <!-- Loading do Gráfico -->
-      <div *ngIf="chartLoading" class="flex flex-col items-center justify-center py-12">
-        <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
-        <p class="mt-4 text-[var(--text-color-secondary)]">
-          {{ 'devices.chart.loading' | translate }}
-        </p>
-      </div>
-
-      <!-- Gráfico -->
-      <div *ngIf="!chartLoading && chartData" class="w-full" style="height: 400px;">
-        <p-chart type="line" [data]="chartData" [options]="chartOptions"></p-chart>
-      </div>
-
-      <!-- Mensagem quando não há dados -->
-      <div *ngIf="!chartLoading && !chartData" class="text-center py-8">
-        <i class="pi pi-chart-line text-4xl text-[var(--text-color-secondary)] mb-4"></i>
-        <p class="m-0 text-[var(--text-color-secondary)]">
-          {{ 'devices.chart.noData' | translate }}
-        </p>
-        <p class="mt-2 text-xs text-[var(--text-color-secondary)]">
-          {{ 'devices.chart.noDataDescription' | translate }}
-        </p>
       </div>
     </p-card>
 
     <!-- Medições Recentes -->
     <p-card *ngIf="recentMeasurements.length > 0">
-      <div class="mb-4">
+      <div class="mb-6">
         <h3 class="m-0 mb-4 text-lg font-semibold text-[var(--text-color)] flex items-center gap-2">
           <i class="pi pi-chart-line text-[var(--primary-color)]"></i>
           Medições em Tempo Real
         </h3>
         <p-divider></p-divider>
       </div>
-      
-      <div class="space-y-3">
-        <div 
-          *ngFor="let measurement of recentMeasurements" 
-          class="p-4 bg-[var(--surface-50)] rounded-lg border-l-4 border-[var(--primary-color)]">
+
+      <div class="flex flex-col gap-4 pt-2">
+        <div
+          *ngFor="let measurement of recentMeasurements"
+          class="p-4 bg-[var(--surface-50)] rounded-lg border-l-4 border-[var(--primary-color)]"
+        >
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex-1 min-w-[200px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Métrica</span>
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
+                >Métrica</span
+              >
               <span class="text-[var(--text-color)] font-semibold">{{ measurement.metric }}</span>
             </div>
             <div class="flex-1 min-w-[150px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Valor</span>
-              <span class="text-[var(--text-color)] text-lg font-bold">{{ measurement.value }} {{ measurement.unit }}</span>
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
+                >Valor</span
+              >
+              <span class="text-[var(--text-color)] text-lg font-bold"
+                >{{ measurement.value }} {{ measurement.unit }}</span
+              >
             </div>
             <div class="flex-1 min-w-[200px]">
-              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-1">Timestamp</span>
-              <span class="text-[var(--text-color)] text-sm">{{ formatDate(measurement.timestamp) }}</span>
+              <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2"
+                >Timestamp</span
+              >
+              <span class="text-[var(--text-color)] text-sm">{{
+                formatDate(measurement.timestamp)
+              }}</span>
             </div>
           </div>
         </div>
@@ -350,4 +413,3 @@
     </p-card>
   </div>
 </div>
-
