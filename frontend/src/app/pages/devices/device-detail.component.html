@@ -342,6 +342,20 @@
           </div>
         </div>
 
+        <!-- Indicador de Regras por Métrica -->
+        <div *ngIf="availableMetrics.length > 0" class="mt-2">
+          <div class="text-sm font-medium text-[var(--text-color-secondary)] mb-2">Regras por métrica</div>
+          <div class="flex flex-wrap gap-2">
+            <div *ngFor="let m of availableMetrics" class="flex items-center gap-2 px-3 py-1 rounded-full border text-sm"
+                 [ngClass]="thresholdsByMetric[m] ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-300 bg-slate-50 text-slate-600'">
+              <span class="font-semibold">{{ m }}</span>
+              <span>
+                {{ thresholdsByMetric[m] ? 'Com limite' : 'Sem limite' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Loading do Gráfico -->
         <div *ngIf="chartLoading" class="flex flex-col items-center justify-center py-12">
           <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
@@ -388,7 +402,11 @@
               <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{
                 'devices.measurementMetric' | translate
               }}</span>
-              <span class="text-[var(--text-color)] font-semibold">{{ measurement.metric }}</span>
+              <span class="text-[var(--text-color)] font-semibold mr-2">{{ measurement.metric }}</span>
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
+                    [ngClass]="thresholdsByMetric[measurement.metric] ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'">
+                {{ thresholdsByMetric[measurement.metric] ? 'Com limite' : 'Sem limite' }}
+              </span>
             </div>
             <div class="flex-1 min-w-[150px]">
               <span class="block text-xs font-medium text-[var(--text-color-secondary)] mb-2">{{

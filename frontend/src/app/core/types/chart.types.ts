@@ -14,6 +14,8 @@ export interface ChartDataset {
   backgroundColor?: string;
   tension?: number;
   fill?: boolean;
+  borderDash?: number[];
+  pointRadius?: number;
 }
 
 export interface ChartOptions {

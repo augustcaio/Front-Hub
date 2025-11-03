@@ -11,7 +11,7 @@ import { ChartModule } from 'primeng/chart';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { DeviceService, Device, Measurement, AggregatedStatistics, ChartPeriod } from '../../core/services/device.service';
+import { DeviceService, Device, Measurement, AggregatedStatistics, ChartPeriod, Threshold, ThresholdListResponse } from '../../core/services/device.service';
 import { WebSocketService, MeasurementUpdate } from '../../core/services/websocket.service';
 import { ChartData, ChartOptions, ChartTooltipContext } from '../../core/types/chart.types';
 import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
@@ -70,6 +70,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   aggregatedStats: AggregatedStatistics | null = null;
   chartUnit = '';
   chartMeasurements: Measurement[] = []; // Armazenar medições do gráfico para recalcular estatísticas
+  thresholdsByMetric: Record<string, { min: number; max: number }> = {};
 
   // Filtros do gráfico
   selectedPeriod: ChartPeriod = 'all';
@@ -139,6 +140,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
           this.connectWebSocket(device.public_id);
           // Carregar métricas disponíveis
           this.loadAvailableMetrics();
+          // Carregar thresholds configurados
+          this.loadThresholds(device.public_id);
           // Carregar dados agregados para o gráfico
           this.loadAggregatedData();
         }
@@ -204,6 +207,30 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadThresholds(publicId: string): void {
+    this.deviceService.getDeviceThresholds(publicId).subscribe({
+      next: (resp: ThresholdListResponse | Threshold[]) => {
+        const list: Threshold[] = Array.isArray(resp) ? resp : resp.results;
+        const active = list.filter(t => t.is_active);
+        this.thresholdsByMetric = {};
+        active.forEach(t => {
+          this.thresholdsByMetric[t.metric_name] = {
+            min: parseFloat(String(t.min_limit)),
+            max: parseFloat(String(t.max_limit))
+          };
+        });
+        // Reaplicar no gráfico se já houver dados
+        if (this.chartData && this.chartMeasurements.length > 0) {
+          this.prepareChartData(this.chartMeasurements);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => {
+        console.warn('Falha ao carregar thresholds:', err);
+      }
+    });
+  }
+
   onPeriodChange(): void {
     this.loadAggregatedData();
   }
@@ -239,7 +266,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     const values = sortedMeasurements.map(m => parseFloat(m.value));
 
     // Preparar dados do gráfico
-    this.chartData = {
+    const data: ChartData = {
       labels: labels,
       datasets: [
         {
@@ -252,6 +279,38 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         }
       ]
     };
+    
+    // Acrescentar linhas horizontais de thresholds (se houver para a métrica selecionada)
+    const currentMetric = this.selectedMetric || (sortedMeasurements[0]?.metric ?? null);
+    if (currentMetric && this.thresholdsByMetric[currentMetric]) {
+      const { min, max } = this.thresholdsByMetric[currentMetric];
+      const minLine = Array(labels.length).fill(min);
+      const maxLine = Array(labels.length).fill(max);
+      data.datasets.push(
+        {
+          label: 'Mínimo permitido',
+          data: minLine,
+          borderColor: '#10B981', // green-500
+          backgroundColor: 'transparent',
+          borderDash: [6, 6],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        },
+        {
+          label: 'Máximo permitido',
+          data: maxLine,
+          borderColor: '#EF4444', // red-500
+          backgroundColor: 'transparent',
+          borderDash: [6, 6],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        }
+      );
+    }
+
+    this.chartData = data;
 
     // Configurar opções do gráfico
     this.setupChartOptions();
@@ -410,7 +469,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     const values = this.chartMeasurements.map(m => parseFloat(m.value));
 
     // Atualizar dados do gráfico
-    this.chartData = {
+    const data: ChartData = {
       labels: labels,
       datasets: [
         {
@@ -423,6 +482,38 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         }
       ]
     };
+
+    // Acrescentar linhas horizontais (thresholds) na métrica atual
+    const currentMetric = this.selectedMetric || (this.chartMeasurements[0]?.metric ?? null);
+    if (currentMetric && this.thresholdsByMetric[currentMetric]) {
+      const { min, max } = this.thresholdsByMetric[currentMetric];
+      const minLine = Array(labels.length).fill(min);
+      const maxLine = Array(labels.length).fill(max);
+      data.datasets.push(
+        {
+          label: 'Mínimo permitido',
+          data: minLine,
+          borderColor: '#10B981',
+          backgroundColor: 'transparent',
+          borderDash: [6, 6],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        },
+        {
+          label: 'Máximo permitido',
+          data: maxLine,
+          borderColor: '#EF4444',
+          backgroundColor: 'transparent',
+          borderDash: [6, 6],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        }
+      );
+    }
+
+    this.chartData = data;
 
     // Recalcular estatísticas agregadas
     this.recalculateAggregatedStats();
