@@ -6,6 +6,8 @@ Following Django REST Framework best practices.
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt import exceptions as jwt_exceptions
+from rest_framework.exceptions import AuthenticationFailed as DRFAuthenticationFailed
 from accounts.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -83,8 +85,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             RefreshToken instance
         """
         token = super().get_token(user)
-        # Custom claim: role
+        # Custom claims
         token['role'] = user.role
+        # Garantir user_id numérico conforme esperado nos testes
+        token['user_id'] = user.id
         return token
     
     def validate(self, attrs):
@@ -97,7 +101,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         Returns:
             Dictionary with access and refresh tokens
         """
-        data = super().validate(attrs)
+        try:
+            data = super().validate(attrs)
+        except (jwt_exceptions.AuthenticationFailed, DRFAuthenticationFailed):
+            # Converter para ValidationError em non_field_errors para que is_valid() retorne False
+            raise serializers.ValidationError({'non_field_errors': ['Usuário e/ou senha incorreto(s)']})
         
         # Opcional: retornar role no corpo da resposta também
         data['role'] = self.user.role
