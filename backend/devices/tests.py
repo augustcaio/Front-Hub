@@ -12,7 +12,8 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from decimal import Decimal
-from .models import Category, Device, Measurement, Alert
+from .models import Category, Device, Measurement, Alert, MeasurementThreshold
+from .services.alert_service import check_for_alert
 from .serializers import (
     CategorySerializer,
     DeviceSerializer,
@@ -307,6 +308,52 @@ class AlertModelTestCase(TestCase):
         # Mais recente primeiro
         self.assertEqual(alerts[0], alert2)
         self.assertEqual(alerts[1], alert1)
+
+
+class AlertServiceThresholdCheckTestCase(TestCase):
+    """Testes unitários para a função check_for_alert."""
+
+    def setUp(self):
+        self.device = Device.objects.create(name='Sensor X', status=Device.Status.ACTIVE)
+        self.unit = '°C'
+        self.metric = 'temperature'
+        # Threshold ativo de 10 a 30
+        MeasurementThreshold.objects.create(
+            device=self.device,
+            metric_name=self.metric,
+            min_limit=Decimal('10.0'),
+            max_limit=Decimal('30.0'),
+            is_active=True,
+        )
+
+    def _create_measurement(self, value: str) -> Measurement:
+        return Measurement.objects.create(
+            device=self.device,
+            metric=self.metric,
+            value=Decimal(value),
+            unit=self.unit,
+            timestamp=timezone.now(),
+        )
+
+    def test_alert_triggered_above_max(self):
+        measurement = self._create_measurement('31.0')
+        violated, message = check_for_alert(measurement)
+        self.assertTrue(violated)
+        self.assertIsNotNone(message)
+        self.assertIn('above maximum', message.lower())
+
+    def test_alert_triggered_below_min(self):
+        measurement = self._create_measurement('5.0')
+        violated, message = check_for_alert(measurement)
+        self.assertTrue(violated)
+        self.assertIsNotNone(message)
+        self.assertIn('below minimum', message.lower())
+
+    def test_no_alert_within_limits(self):
+        measurement = self._create_measurement('20.0')
+        violated, message = check_for_alert(measurement)
+        self.assertFalse(violated)
+        self.assertIsNone(message)
 
 
 class DeviceSerializerTestCase(TestCase):

@@ -20,6 +20,7 @@ from .models import Category, Device, Measurement, Alert, MeasurementThreshold
 from .serializers import CategorySerializer, DeviceSerializer, MeasurementSerializer, AlertSerializer, ThresholdSerializer
 from .filters import DeviceFilter, AlertFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
+from .services.alert_service import check_for_alert
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,24 @@ class MeasurementIngestionView(APIView):
             
             # Send real-time update via WebSocket
             self._send_measurement_update(device.public_id, measurement_data)
+            
+            # Check for threshold violation and create alert if needed
+            try:
+                violated, message = check_for_alert(measurement)
+                if violated and message:
+                    Alert.objects.create(
+                        device=device,
+                        title=f"Threshold Violation: {measurement.metric}",
+                        message=message,
+                        severity=Alert.Severity.HIGH,
+                        status=Alert.Status.PENDING,
+                    )
+            except Exception as e:
+                # Log and continue; ingestion should not fail due to alert creation issues
+                logger.error(
+                    f"Error during threshold check/alert creation for device {device.id}: {str(e)}",
+                    exc_info=True,
+                )
             
             return Response(
                 measurement_data,

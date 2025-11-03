@@ -85,6 +85,24 @@ export interface AlertListResponse {
   results: Alert[];
 }
 
+export interface Threshold {
+  id: number;
+  device: number;
+  metric_name: string;
+  min_limit: string;
+  max_limit: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ThresholdListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Threshold[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -97,6 +115,7 @@ export class DeviceService {
   private readonly devicesEndpoint = `${this.apiUrl}/devices/`;
   private readonly alertsEndpoint = `${this.apiUrl}/alerts`;
   private readonly categoriesEndpoint = `${this.apiUrl}/categories/`;
+  private readonly deviceThresholdsEndpoint = (publicId: string) => `${this.apiUrl}/devices/${publicId}/thresholds/`;
 
   /**
    * Lista todos os dispositivos
@@ -252,6 +271,46 @@ export class DeviceService {
    */
   getUnresolvedAlerts(): Observable<AlertListResponse> {
     return this.getAlerts(true);
+  }
+
+  /**
+   * Lista thresholds de um dispositivo (por public_id)
+   */
+  getDeviceThresholds(publicId: string): Observable<ThresholdListResponse | Threshold[]> {
+    const headers = this.getAuthHeaders();
+    return this.http
+      .get<ThresholdListResponse | Threshold[]>(this.deviceThresholdsEndpoint(publicId), { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Exclui um threshold específico
+   */
+  deleteDeviceThreshold(publicId: string, thresholdId: number): Observable<void> {
+    const headers = this.getAuthHeaders();
+    return this.http
+      .delete<void>(`${this.deviceThresholdsEndpoint(publicId)}${thresholdId}/`, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Cria um threshold para o device (por public_id)
+   */
+  createDeviceThreshold(publicId: string, payload: Pick<Threshold, 'metric_name' | 'min_limit' | 'max_limit' | 'is_active'>): Observable<Threshold> {
+    const headers = this.getAuthHeaders();
+    return this.http
+      .post<Threshold>(this.deviceThresholdsEndpoint(publicId), payload, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Atualiza um threshold existente
+   */
+  updateDeviceThreshold(publicId: string, thresholdId: number, payload: Partial<Pick<Threshold, 'metric_name' | 'min_limit' | 'max_limit' | 'is_active'>>): Observable<Threshold> {
+    const headers = this.getAuthHeaders();
+    return this.http
+      .patch<Threshold>(`${this.deviceThresholdsEndpoint(publicId)}${thresholdId}/`, payload, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 
   /**

@@ -16,5 +16,9 @@ export const routes: Routes = [
   {
     path: ':id',
     loadComponent: () => import('./device-detail.component').then(m => m.DeviceDetailComponent)
+  },
+  {
+    path: ':public_id/limits',
+    loadComponent: () => import('./device-threshold.component').then(m => m.DeviceThresholdComponent)
   }
 ];
