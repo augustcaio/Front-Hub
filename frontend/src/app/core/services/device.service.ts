@@ -4,15 +4,33 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Device {
   id: number;
   public_id: string;
   name: string;
+  category?: number | null;
   status: 'active' | 'inactive' | 'maintenance' | 'error';
   description?: string;
   created_at: string;
   updated_at: string;
 }
+
+export interface DeviceCreateRequest {
+  name: string;
+  category?: number | null;
+  status: 'active' | 'inactive' | 'maintenance' | 'error';
+  description?: string;
+}
+
+export interface DeviceUpdateRequest extends Partial<DeviceCreateRequest> {}
 
 export interface DeviceListResponse {
   count: number;
@@ -72,6 +90,7 @@ export class DeviceService {
   // API endpoints
   private readonly devicesEndpoint = `${this.apiUrl}/devices/`;
   private readonly alertsEndpoint = `${this.apiUrl}/alerts`;
+  private readonly categoriesEndpoint = `${this.apiUrl}/categories/`;
 
   /**
    * Lista todos os dispositivos
@@ -89,6 +108,64 @@ export class DeviceService {
   getDevice(id: number): Observable<Device> {
     const headers = this.getAuthHeaders();
     return this.http.get<Device>(`${this.devicesEndpoint}${id}/`, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => this.handleError(error))
+    );
+  }
+
+  /**
+   * Cria um novo dispositivo
+   */
+  createDevice(device: DeviceCreateRequest): Observable<Device> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<Device>(this.devicesEndpoint, device, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => this.handleError(error))
+    );
+  }
+
+  /**
+   * Atualiza um dispositivo existente
+   */
+  updateDevice(id: number, device: DeviceUpdateRequest): Observable<Device> {
+    const headers = this.getAuthHeaders();
+    return this.http.put<Device>(`${this.devicesEndpoint}${id}/`, device, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => this.handleError(error))
+    );
+  }
+
+  /**
+   * Atualiza parcialmente um dispositivo existente
+   */
+  patchDevice(id: number, device: DeviceUpdateRequest): Observable<Device> {
+    const headers = this.getAuthHeaders();
+    return this.http.patch<Device>(`${this.devicesEndpoint}${id}/`, device, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => this.handleError(error))
+    );
+  }
+
+  /**
+   * Exclui um dispositivo
+   */
+  deleteDevice(id: number): Observable<void> {
+    const headers = this.getAuthHeaders();
+    return this.http.delete<void>(`${this.devicesEndpoint}${id}/`, { headers }).pipe(
+      catchError((error: HttpErrorResponse) => this.handleError(error))
+    );
+  }
+
+  /**
+   * Lista todas as categorias
+   */
+  getCategories(): Observable<Category[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<Category[]>(this.categoriesEndpoint, { headers }).pipe(
+      map((response) => {
+        // DRF pode retornar array direto ou objeto paginado
+        if (Array.isArray(response)) {
+          return response;
+        }
+        // Se for paginado, retornar results
+        return (response as any).results || [];
+      }),
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }

@@ -1,0 +1,148 @@
+<div class="p-4 max-w-[800px] mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--text-color)]">
+      {{ isEditMode ? 'Editar Dispositivo' : 'Novo Dispositivo' }}
+    </h1>
+    <p class="m-0 text-[var(--text-color-secondary)]">
+      {{ isEditMode ? 'Atualize as informações do dispositivo' : 'Preencha os dados para criar um novo dispositivo' }}
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading && !deviceForm.value.name" class="flex flex-col items-center justify-center p-12 text-center">
+    <p-progressSpinner [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+    <p class="mt-4 text-[var(--text-color-secondary)]">
+      {{ isEditMode ? 'Carregando dispositivo...' : 'Carregando...' }}
+    </p>
+  </div>
+
+  <!-- Form Card -->
+  <p-card *ngIf="!loading || deviceForm.value.name">
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="mb-4">
+      <p-message severity="success" [text]="successMessage"></p-message>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mb-4">
+      <p-message severity="error" [text]="errorMessage"></p-message>
+    </div>
+
+    <!-- Device Form -->
+    <form [formGroup]="deviceForm" (ngSubmit)="onSubmit()">
+      <!-- Name Field -->
+      <div class="mb-4">
+        <label for="name" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+          Nome do Dispositivo <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          pInputText
+          formControlName="name"
+          placeholder="Ex: Sensor de Temperatura"
+          class="w-full"
+          [class.ng-invalid]="name?.invalid && name?.touched"
+          [class.ng-valid]="name?.valid && name?.touched"
+        />
+        <ng-container *ngIf="name?.invalid && name?.touched">
+          <small class="text-red-500 text-xs block mt-1">
+            <span *ngIf="name?.errors?.['required']">Nome é obrigatório</span>
+            <span *ngIf="name?.errors?.['minlength']">Nome deve ter pelo menos 3 caracteres</span>
+            <span *ngIf="name?.errors?.['maxlength']">Nome deve ter no máximo 255 caracteres</span>
+          </small>
+        </ng-container>
+      </div>
+
+      <!-- Category Field -->
+      <div class="mb-4">
+        <label for="category" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+          Categoria
+        </label>
+        <p-dropdown
+          id="category"
+          formControlName="category"
+          [options]="categories"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Selecione uma categoria (opcional)"
+          [disabled]="loadingCategories"
+          [style]="{ width: '100%' }"
+          [showClear]="true"
+          [class.ng-invalid]="category?.invalid && category?.touched"
+          [class.ng-valid]="category?.valid && category?.touched">
+        </p-dropdown>
+        <small class="text-[var(--text-color-secondary)] text-xs block mt-1">
+          <span *ngIf="loadingCategories">Carregando categorias...</span>
+          <span *ngIf="!loadingCategories">Categoria é opcional. Você pode adicionar uma categoria posteriormente.</span>
+        </small>
+      </div>
+
+      <!-- Status Field -->
+      <div class="mb-4">
+        <label for="status" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+          Status <span class="text-red-500">*</span>
+        </label>
+        <p-dropdown
+          id="status"
+          formControlName="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Selecione o status"
+          [style]="{ width: '100%' }"
+          [class.ng-invalid]="status?.invalid && status?.touched"
+          [class.ng-valid]="status?.valid && status?.touched">
+        </p-dropdown>
+        <ng-container *ngIf="status?.invalid && status?.touched">
+          <small class="text-red-500 text-xs block mt-1">
+            <span *ngIf="status?.errors?.['required']">Status é obrigatório</span>
+          </small>
+        </ng-container>
+      </div>
+
+      <!-- Description Field -->
+      <div class="mb-6">
+        <label for="description" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
+          Descrição
+        </label>
+        <textarea
+          id="description"
+          pTextarea
+          formControlName="description"
+          placeholder="Descrição opcional do dispositivo..."
+          [rows]="4"
+          class="w-full"
+          [class.ng-invalid]="description?.invalid && description?.touched"
+          [class.ng-valid]="description?.valid && description?.touched">
+        </textarea>
+        <ng-container *ngIf="description?.invalid && description?.touched">
+          <small class="text-red-500 text-xs block mt-1">
+            <span *ngIf="description?.errors?.['maxlength']">Descrição deve ter no máximo 1000 caracteres</span>
+          </small>
+        </ng-container>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex flex-wrap gap-3 justify-end pt-4 border-t border-[var(--surface-border)]">
+        <p-button
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          [styleClass]="'p-button-outlined'"
+          [disabled]="loading"
+          (click)="onCancel()">
+        </p-button>
+        <p-button
+          type="submit"
+          [label]="isEditMode ? 'Atualizar' : 'Criar'"
+          [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
+          [loading]="loading"
+          [disabled]="deviceForm.invalid || loading">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+</div>
+

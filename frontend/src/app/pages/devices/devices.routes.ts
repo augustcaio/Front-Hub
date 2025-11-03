@@ -6,6 +6,14 @@ export const routes: Routes = [
     loadComponent: () => import('./devices-list.component').then(m => m.DevicesListComponent)
   },
   {
+    path: 'new',
+    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent)
+  },
+  {
+    path: ':id/edit',
+    loadComponent: () => import('./device-form.component').then(m => m.DeviceFormComponent)
+  },
+  {
     path: ':id',
     loadComponent: () => import('./device-detail.component').then(m => m.DeviceDetailComponent)
   }
