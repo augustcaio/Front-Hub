@@ -19,6 +19,22 @@ export interface TokenVerifyResponse {
   detail: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -52,6 +68,35 @@ export class AuthService {
       }),
       catchError((error: HttpErrorResponse) => {
         return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * Registra um novo usuário
+   */
+  register(
+    username: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    password: string
+  ): Observable<RegisterResponse> {
+    const body: RegisterRequest = {
+      username,
+      email,
+      first_name: firstName,
+      last_name: lastName,
+      password
+    };
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/register/`, body, { headers, withCredentials: false }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return this.handleRegisterError(error);
       })
     );
   }
@@ -198,6 +243,51 @@ export class AuthService {
         errorMessage = error.error.non_field_errors[0];
       } else {
         errorMessage = `Erro ${error.status}: ${error.message}`;
+      }
+    }
+
+    return throwError(() => new Error(errorMessage));
+  }
+
+  private handleRegisterError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Erro ao criar conta';
+
+    if (error.error instanceof ErrorEvent) {
+      // Erro do lado do cliente
+      errorMessage = `Erro: ${error.error.message}`;
+    } else {
+      // Erro do lado do servidor
+      if (error.status === 400) {
+        // Erro de validação
+        const errors = error.error;
+        const errorMessages: string[] = [];
+
+        if (errors.username) {
+          errorMessages.push(Array.isArray(errors.username) ? errors.username[0] : errors.username);
+        }
+        if (errors.email) {
+          errorMessages.push(Array.isArray(errors.email) ? errors.email[0] : errors.email);
+        }
+        if (errors.password) {
+          errorMessages.push(Array.isArray(errors.password) ? errors.password[0] : errors.password);
+        }
+        if (errors.first_name) {
+          errorMessages.push(Array.isArray(errors.first_name) ? errors.first_name[0] : errors.first_name);
+        }
+        if (errors.last_name) {
+          errorMessages.push(Array.isArray(errors.last_name) ? errors.last_name[0] : errors.last_name);
+        }
+        if (errors.non_field_errors) {
+          errorMessages.push(Array.isArray(errors.non_field_errors) ? errors.non_field_errors[0] : errors.non_field_errors);
+        }
+
+        errorMessage = errorMessages.length > 0 ? errorMessages.join('. ') : 'Dados inválidos. Verifique os campos preenchidos.';
+      } else if (error.status === 0) {
+        errorMessage = 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.';
+      } else if (error.error?.detail) {
+        errorMessage = error.error.detail;
+      } else {
+        errorMessage = `Erro ${error.status}: ${error.message || 'Erro ao criar conta'}`;
       }
     }
 
