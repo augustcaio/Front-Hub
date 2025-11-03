@@ -60,6 +60,12 @@ export interface AggregatedDataResponse {
   count: number;
 }
 
+export interface DeviceMetricsResponse {
+  metrics: string[];
+}
+
+export type ChartPeriod = 'last_24h' | 'last_7d' | 'last_30d' | 'all';
+
 export interface Alert {
   id: number;
   device: number;
@@ -199,11 +205,34 @@ export class DeviceService {
 
   /**
    * Busca dados agregados de um dispositivo (últimos 100 pontos + estatísticas)
+   * @param deviceId ID do dispositivo
+   * @param period Período de tempo (last_24h, last_7d, last_30d, all)
+   * @param metric Nome da métrica para filtrar (opcional)
+   * @param limit Número máximo de medições (padrão: 100)
    */
-  getAggregatedData(deviceId: number): Observable<AggregatedDataResponse> {
+  getAggregatedData(
+    deviceId: number,
+    period: ChartPeriod = 'all',
+    metric?: string | null,
+    limit: number = 100
+  ): Observable<AggregatedDataResponse> {
+    const headers = this.getAuthHeaders();
+    let url = `${this.devicesEndpoint}${deviceId}/aggregated-data/?period=${period}&limit=${limit}`;
+    if (metric) {
+      url += `&metric=${encodeURIComponent(metric)}`;
+    }
+    return this.http
+      .get<AggregatedDataResponse>(url, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
+  }
+
+  /**
+   * Busca métricas disponíveis para um dispositivo
+   */
+  getDeviceMetrics(deviceId: number): Observable<DeviceMetricsResponse> {
     const headers = this.getAuthHeaders();
     return this.http
-      .get<AggregatedDataResponse>(`${this.devicesEndpoint}${deviceId}/aggregated-data/`, { headers })
+      .get<DeviceMetricsResponse>(`${this.devicesEndpoint}${deviceId}/metrics/`, { headers })
       .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 

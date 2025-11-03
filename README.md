@@ -14,6 +14,7 @@ Sistema de gerenciamento e monitoramento de dispositivos IoT em tempo real, com 
 - [Capturas de Tela](#capturas-de-tela)
 - [Comandos Úteis](#comandos-úteis)
 - [Troubleshooting](#troubleshooting)
+- [CI/CD (GitHub Actions)](#cicd-github-actions)
 
 ## 🎯 Sobre o Projeto
 
@@ -1158,6 +1159,59 @@ cd frontend && npm test
 - `backend/create_test_devices.py` - Cria dispositivos de exemplo
 - `backend/test_websocket.py` - Testa conexão WebSocket
 - `backend/generate_secret_key.py` - Gera SECRET_KEY seguro
+
+## 🔄 CI/CD (GitHub Actions)
+
+O projeto inclui um workflow de CI/CD configurado no GitHub Actions que executa automaticamente em cada push e pull request.
+
+### Workflow Configurado
+
+O workflow principal (`.github/workflows/ci.yml`) executa:
+
+1. **Testes do Backend (Django)**
+   - Setup PostgreSQL e Redis como serviços
+   - Instalação de dependências
+   - Linting com flake8
+   - Execução de migrações
+   - Execução de testes unitários e de integração
+   - Geração de relatório de cobertura de código
+
+2. **Testes do Frontend (Angular)**
+   - Setup Node.js 18
+   - Instalação de dependências NPM
+   - Execução de testes unitários (Karma/ChromeHeadless)
+   - Geração de relatório de cobertura
+
+3. **Build do Backend**
+   - Verificação de configuração Django para produção
+   - Coleta de arquivos estáticos
+
+4. **Build do Frontend**
+   - Build da aplicação Angular em modo produção
+   - Verificação de artefatos gerados
+
+### Triggers
+
+O workflow é executado automaticamente quando:
+- Um push é feito para as branches: `main`, `develop`, `master`
+- Um pull request é criado para as branches: `main`, `develop`, `master`
+
+### Status do Pipeline
+
+Você pode verificar o status do pipeline de CI/CD:
+- Na aba "Actions" do repositório GitHub
+- No badge de status (se configurado) na página principal do README
+
+### Cobertura de Código
+
+Os relatórios de cobertura são automaticamente enviados para o Codecov (opcional):
+- Backend: `coverage.xml`
+- Frontend: `coverage-final.json`
+
+### Documentação Completa
+
+Para mais detalhes sobre a configuração do CI/CD, consulte:
+- `.github/workflows/README.md` - Documentação completa dos workflows
 
 ## 🚀 Deploy
 

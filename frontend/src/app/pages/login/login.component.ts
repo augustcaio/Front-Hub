@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit }
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { PasswordModule } from 'primeng/password';
@@ -16,6 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
+    TranslateModule,
     InputTextModule,
     ButtonModule,
     PasswordModule,
@@ -31,6 +33,7 @@ export class LoginComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translate = inject(TranslateService);
 
   readonly loginForm: FormGroup = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
@@ -52,8 +55,10 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     // Verifica se o usuário veio do registro
     if (this.route.snapshot.queryParams['registered'] === 'true') {
-      this.successMessage = 'Conta criada com sucesso! Faça login para continuar.';
-      this.cdr.markForCheck();
+      this.translate.get('auth.accountCreated').subscribe((text: string) => {
+        this.successMessage = text;
+        this.cdr.markForCheck();
+      });
     }
   }
 
@@ -79,8 +84,10 @@ export class LoginComponent implements OnInit {
       },
       error: (error: Error) => {
         this.loading = false;
-        this.errorMessage = error.message || 'Erro ao realizar login';
-        this.cdr.markForCheck();
+        this.translate.get('auth.loginError').subscribe((text: string) => {
+          this.errorMessage = error.message || text;
+          this.cdr.markForCheck();
+        });
       }
     });
   }

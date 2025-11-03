@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Front-Hub",
+    "description": "Sistema de gerenciamento e monitoramento de dispositivos IoT"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "loadingData": "Carregando dados...",
+    "error": "Erro",
+    "tryAgain": "Tentar novamente",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "view": "Visualizar",
+    "refresh": "Atualizar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "noData": "Nenhum dado disponível",
+    "actions": "Ações",
+    "required": "Obrigatório",
+    "optional": "Opcional"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Criar conta",
+    "username": "Usuário",
+    "password": "Senha",
+    "accessAccount": "Acesse sua conta",
+    "enterUsername": "Digite seu usuário",
+    "enterPassword": "Digite sua senha",
+    "usernameRequired": "Usuário é obrigatório",
+    "usernameMinLength": "Usuário deve ter pelo menos 3 caracteres",
+    "passwordRequired": "Senha é obrigatória",
+    "passwordMinLength": "Senha deve ter pelo menos 4 caracteres",
+    "loginError": "Erro ao realizar login",
+    "noAccount": "Não tem uma conta?",
+    "accountCreated": "Conta criada com sucesso! Faça login para continuar.",
+    "registerTitle": "Criar nova conta",
+    "registerDescription": "Preencha os dados para se cadastrar",
+    "confirmPassword": "Confirmar senha",
+    "enterConfirmPassword": "Digite novamente sua senha",
+    "passwordMismatch": "As senhas não coincidem",
+    "registerError": "Erro ao criar conta",
+    "registerSuccess": "Conta criada com sucesso!"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Visão geral do sistema Front-Hub",
+    "stats": {
+      "total": "Total",
+      "active": "Ativos",
+      "inactive": "Inativos",
+      "maintenance": "Manutenção",
+      "error": "Erro"
+    },
+    "recentDevices": "Dispositivos Recentes",
+    "unresolvedAlerts": "Alertas Não Resolvidos",
+    "unresolvedAlertsCount": "Alertas Não Resolvidos ({{count}})",
+    "unresolvedAlertsDescription": "Atenção necessária nos seguintes dispositivos",
+    "noRecentDevices": "Nenhum dispositivo recente",
+    "noAlerts": "Nenhum alerta pendente",
+    "viewAll": "Ver todos",
+    "viewDevice": "Ver dispositivo",
+    "totalDevices": "Total de Dispositivos",
+    "active": "Ativos",
+    "inactive": "Inativos",
+    "maintenance": "Em Manutenção",
+    "error": "Com Erro",
+    "recentDevices": "Dispositivos Recentes",
+    "noDevicesFound": "Nenhum dispositivo encontrado",
+    "createDevice": "Criar Dispositivo",
+    "viewDetails": "Ver Detalhes",
+    "createdAt": "Criado em",
+    "severity": "Severidade",
+    "deviceId": "Dispositivo ID"
+  },
+  "devices": {
+    "title": "Dispositivos",
+    "newDevice": "Novo Dispositivo",
+    "editDevice": "Editar Dispositivo",
+    "deviceDetails": "Detalhes do Dispositivo",
+    "createDescription": "Preencha os dados para criar um novo dispositivo",
+    "editDescription": "Atualize as informações do dispositivo",
+    "loadingDevices": "Carregando dispositivos...",
+    "loadingDevice": "Carregando dispositivo...",
+    "name": "Nome",
+    "status": "Status",
+    "category": "Categoria",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Descrição opcional do dispositivo...",
+    "enterName": "Digite o nome do dispositivo",
+    "nameRequired": "Nome é obrigatório",
+    "nameMinLength": "Nome deve ter pelo menos 3 caracteres",
+    "descriptionMaxLength": "Descrição deve ter no máximo 1000 caracteres",
+    "statusOptions": {
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "maintenance": "Manutenção",
+      "error": "Erro"
+    },
+    "recentMeasurements": "Medições em Tempo Real",
+    "measurementHistory": "Histórico de Precisão",
+    "chart": {
+      "title": "Histórico de Precisão",
+      "period": "Período",
+      "metric": "Métrica",
+      "selectPeriod": "Selecione o período",
+      "selectMetric": "Selecione a métrica",
+      "loading": "Carregando dados do gráfico...",
+      "noData": "Nenhum dado disponível para exibir no gráfico",
+      "noDataDescription": "Os dados aparecerão aqui quando houver medições do dispositivo",
+      "stats": {
+        "mean": "Média",
+        "max": "Máximo",
+        "min": "Mínimo"
+      },
+      "periods": {
+        "last_24h": "Últimas 24h",
+        "last_7d": "Últimos 7 dias",
+        "last_30d": "Últimos 30 dias",
+        "all": "Todas"
+      }
+    },
+    "aggregatedStats": {
+      "mean": "Média",
+      "max": "Máximo",
+      "min": "Mínimo"
+    },
+    "noMeasurementData": "Nenhum dado disponível para exibir no gráfico",
+    "noMeasurementDataDescription": "Os dados aparecerão aqui quando houver medições do dispositivo",
+    "loadingChart": "Carregando dados do gráfico..."
+  },
+  "alerts": {
+    "title": "Alertas",
+    "severity": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "status": {
+      "pending": "Pendente",
+      "resolved": "Resolvido"
+    }
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "devices": "Dispositivos",
+    "account": "Minha Conta"
+  },
+  "account": {
+    "title": "Minha Conta",
+    "accountDetails": "Detalhes da Conta",
+    "username": "Usuário",
+    "createdAt": "Conta criada em",
+    "lastLogin": "Último acesso",
+    "menu": {
+      "accountDetails": "Detalhes da Conta",
+      "logout": "Sair"
+    }
+  },
+  "language": {
+    "select": "Idioma",
+    "pt-BR": "Português (Brasil)",
+    "en-US": "English (US)"
+  }
+}
+

@@ -10,12 +10,16 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Max, Min, DecimalField
+from django.utils import timezone
+from datetime import timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
 
 from .models import Category, Device, Measurement, Alert
 from .serializers import CategorySerializer, DeviceSerializer, MeasurementSerializer, AlertSerializer
+from .filters import DeviceFilter, AlertFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 logger = logging.getLogger(__name__)
 
@@ -43,17 +47,33 @@ class DeviceViewSet(viewsets.ModelViewSet):
     
     Provides full CRUD operations (Create, Read, Update, Delete).
     Uses JWT authentication (configured globally in settings).
+    
+    Filtering:
+    - Filter by status: /api/devices/?status=active
+    - Filter by category: /api/devices/?category=1
+    - Filter by name: /api/devices/?name=sensor
+    - Filter by date range: /api/devices/?created_after=2024-01-01T00:00:00Z&created_before=2024-12-31T23:59:59Z
+    
+    Searching:
+    - Search across name and description: /api/devices/?search=temperature
+    
+    Ordering:
+    - Order by fields: /api/devices/?ordering=name, -created_at
     """
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
     permission_classes: list = [IsAuthenticated]
+    filterset_class = DeviceFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'status', 'created_at', 'updated_at']
+    ordering = ['-created_at']  # Default ordering
     
     def get_queryset(self):
         """Optimize queryset with select_related to avoid N+1 queries."""
         queryset = Device.objects.select_related('category').all()
         
-        # Order by created_at (newest first) as defined in model Meta
-        queryset = queryset.order_by('-created_at')
+        # Ordering is handled by OrderingFilter, but we keep this as fallback
+        # The default ordering is set in the ordering attribute above
         
         return queryset
 
@@ -144,37 +164,29 @@ class AlertViewSet(viewsets.ModelViewSet):
     
     Provides full CRUD operations (Create, Read, Update, Delete).
     Uses JWT authentication (configured globally in settings).
+    
+    Filtering:
+    - Filter by device: /api/alerts/?device=1
+    - Filter by status: /api/alerts/?status=pending
+    - Filter by severity: /api/alerts/?severity=high
+    - Filter by device status: /api/alerts/?device_status=active
+    - Filter unresolved only: /api/alerts/?unresolved_only=true
+    
+    Ordering:
+    - Order by fields: /api/alerts/?ordering=-created_at,severity
     """
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
     permission_classes: list = [IsAuthenticated]
+    filterset_class = AlertFilter
+    ordering_fields = ['created_at', 'severity', 'status']
+    ordering = ['-created_at']  # Default ordering
     
     def get_queryset(self):
         """Optimize queryset with select_related."""
         queryset = Alert.objects.select_related('device').all()
         
-        # Filtrar por device_id se fornecido como query parameter
-        device_id = self.request.query_params.get('device_id', None)
-        if device_id is not None:
-            try:
-                queryset = queryset.filter(device_id=int(device_id))
-            except (ValueError, TypeError):
-                pass
-        
-        # Filtrar por status se fornecido como query parameter
-        status = self.request.query_params.get('status', None)
-        if status is not None:
-            valid_statuses = [choice[0] for choice in Alert.Status.choices]
-            if status in valid_statuses:
-                queryset = queryset.filter(status=status)
-        
-        # Filtrar apenas alertas não resolvidos (para uso comum)
-        unresolved_only = self.request.query_params.get('unresolved_only', None)
-        if unresolved_only is not None and unresolved_only.lower() == 'true':
-            queryset = queryset.filter(status=Alert.Status.PENDING)
-        
-        # Order by created_at (newest first) as defined in model Meta
-        queryset = queryset.order_by('-created_at')
+        # Ordering is handled by OrderingFilter
         
         return queryset
 
@@ -184,8 +196,12 @@ class DeviceAggregatedDataView(APIView):
     APIView for retrieving aggregated measurement data for a device.
     
     Endpoint: GET /api/devices/{device_id}/aggregated-data/
-    Returns the last 100 measurement points and aggregated statistics
-    (mean, max, min) for a specific device.
+    Returns measurement points and aggregated statistics (mean, max, min) for a specific device.
+    
+    Query Parameters:
+    - period: Filter by time period (last_24h, last_7d, last_30d, all). Default: all
+    - metric: Filter by metric name (e.g., 'temperature', 'humidity'). Optional
+    - limit: Maximum number of measurements to return. Default: 100
     """
     permission_classes: list = [IsAuthenticated]
     
@@ -203,10 +219,33 @@ class DeviceAggregatedDataView(APIView):
         # Get device or return 404
         device = get_object_or_404(Device, id=device_id)
         
-        # Get last 100 measurements for this device, ordered by timestamp (newest first)
-        measurements_qs = Measurement.objects.filter(
-            device=device
-        ).order_by('-timestamp')[:100]
+        # Get query parameters
+        period = request.query_params.get('period', 'all')
+        metric = request.query_params.get('metric', None)
+        limit = int(request.query_params.get('limit', 100))
+        
+        # Base queryset
+        measurements_qs = Measurement.objects.filter(device=device)
+        
+        # Filter by metric if provided
+        if metric:
+            measurements_qs = measurements_qs.filter(metric__iexact=metric)
+        
+        # Filter by time period
+        now = timezone.now()
+        if period == 'last_24h':
+            start_time = now - timedelta(hours=24)
+            measurements_qs = measurements_qs.filter(timestamp__gte=start_time)
+        elif period == 'last_7d':
+            start_time = now - timedelta(days=7)
+            measurements_qs = measurements_qs.filter(timestamp__gte=start_time)
+        elif period == 'last_30d':
+            start_time = now - timedelta(days=30)
+            measurements_qs = measurements_qs.filter(timestamp__gte=start_time)
+        # 'all' doesn't filter by time
+        
+        # Order by timestamp (newest first) and limit
+        measurements_qs = measurements_qs.order_by('-timestamp')[:limit]
         
         # Calculate aggregated statistics first (before evaluating the QuerySet)
         aggregates = measurements_qs.aggregate(
@@ -241,3 +280,32 @@ class DeviceAggregatedDataView(APIView):
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class DeviceMetricsView(APIView):
+    """
+    APIView for retrieving available metrics for a device.
+    
+    Endpoint: GET /api/devices/{device_id}/metrics/
+    Returns list of unique metric names available for the device.
+    """
+    permission_classes: list = [IsAuthenticated]
+    
+    def get(self, request, device_id: int) -> Response:
+        """
+        Retrieve available metrics for the specified device.
+        
+        Args:
+            request: HTTP request object
+            device_id: ID of the device
+        
+        Returns:
+            Response: 200 OK with list of metrics, or 404 if device not found
+        """
+        # Get device or return 404
+        device = get_object_or_404(Device, id=device_id)
+        
+        # Get distinct metrics for this device
+        metrics = Measurement.objects.filter(device=device).values_list('metric', flat=True).distinct().order_by('metric')
+        
+        return Response({'metrics': list(metrics)}, status=status.HTTP_200_OK)

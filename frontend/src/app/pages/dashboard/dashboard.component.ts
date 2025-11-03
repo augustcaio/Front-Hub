@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
@@ -19,6 +20,7 @@ import { formatDate as formatDateUtil, formatDateTime as formatDateTimeUtil } fr
   imports: [
     CommonModule,
     RouterModule,
+    TranslateModule,
     CardModule,
     ProgressSpinnerModule,
     TagModule,

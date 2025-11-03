@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -7,8 +8,10 @@ import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DividerModule } from 'primeng/divider';
 import { ChartModule } from 'primeng/chart';
+import { DropdownModule } from 'primeng/dropdown';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { DeviceService, Device, Measurement, AggregatedStatistics } from '../../core/services/device.service';
+import { DeviceService, Device, Measurement, AggregatedStatistics, ChartPeriod } from '../../core/services/device.service';
 import { WebSocketService, MeasurementUpdate } from '../../core/services/websocket.service';
 import { ChartData, ChartOptions, ChartTooltipContext } from '../../core/types/chart.types';
 import { getDeviceStatusSeverity, getDeviceStatusLabel } from '../../core/utils/device.utils';
@@ -20,13 +23,16 @@ import { CHART_CONFIG, WS_CONNECTION_STATUS, WsConnectionStatus } from '../../co
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     CardModule,
     ButtonModule,
     TagModule,
     ProgressSpinnerModule,
     DividerModule,
-    ChartModule
+    ChartModule,
+    DropdownModule,
+    TranslateModule
   ],
   templateUrl: './device-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -37,6 +43,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
+  private readonly translate = inject(TranslateService);
 
   device: Device | null = null;
   loading = true;
@@ -64,7 +71,24 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   chartUnit = '';
   chartMeasurements: Measurement[] = []; // Armazenar medições do gráfico para recalcular estatísticas
 
+  // Filtros do gráfico
+  selectedPeriod: ChartPeriod = 'all';
+  selectedMetric: string | null = null;
+  availableMetrics: string[] = [];
+  periodOptions: Array<{ label: string; value: ChartPeriod }> = [];
+
+  constructor() {
+    // Observar mudanças de idioma para atualizar labels
+    this.translate.onLangChange.subscribe(() => {
+      this.updatePeriodOptions();
+      this.cdr.markForCheck();
+    });
+  }
+
   ngOnInit(): void {
+    // Inicializar opções de período com traduções
+    this.updatePeriodOptions();
+    
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -75,6 +99,23 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.cdr.markForCheck();
       }
+    });
+  }
+
+  updatePeriodOptions(): void {
+    this.translate.get([
+      'devices.chart.periods.last_24h',
+      'devices.chart.periods.last_7d',
+      'devices.chart.periods.last_30d',
+      'devices.chart.periods.all'
+    ]).subscribe(translations => {
+      this.periodOptions = [
+        { label: translations['devices.chart.periods.last_24h'], value: 'last_24h' },
+        { label: translations['devices.chart.periods.last_7d'], value: 'last_7d' },
+        { label: translations['devices.chart.periods.last_30d'], value: 'last_30d' },
+        { label: translations['devices.chart.periods.all'], value: 'all' }
+      ];
+      this.cdr.markForCheck();
     });
   }
 
@@ -96,6 +137,8 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         // Conectar ao WebSocket após carregar o dispositivo
         if (device) {
           this.connectWebSocket(device.public_id);
+          // Carregar métricas disponíveis
+          this.loadAvailableMetrics();
           // Carregar dados agregados para o gráfico
           this.loadAggregatedData();
         }
@@ -103,6 +146,29 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
       error: (error: Error) => {
         this.error = error.message || 'Erro ao carregar dispositivo';
         this.loading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadAvailableMetrics(): void {
+    if (!this.deviceId) {
+      return;
+    }
+
+    this.deviceService.getDeviceMetrics(this.deviceId).subscribe({
+      next: (data) => {
+        this.availableMetrics = data.metrics;
+        // Se não há métrica selecionada e há métricas disponíveis, selecionar a primeira
+        if (!this.selectedMetric && this.availableMetrics.length > 0) {
+          this.selectedMetric = this.availableMetrics[0];
+          // Recarregar dados com a métrica selecionada
+          this.loadAggregatedData();
+        }
+        this.cdr.markForCheck();
+      },
+      error: (error: Error) => {
+        console.error('Erro ao carregar métricas disponíveis:', error);
         this.cdr.markForCheck();
       }
     });
@@ -116,7 +182,12 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
     this.chartLoading = true;
     this.cdr.markForCheck();
 
-    this.deviceService.getAggregatedData(this.deviceId).subscribe({
+    this.deviceService.getAggregatedData(
+      this.deviceId,
+      this.selectedPeriod,
+      this.selectedMetric,
+      100
+    ).subscribe({
       next: (data) => {
         this.aggregatedStats = data.statistics;
         // Armazenar medições para recalcular estatísticas em tempo real
@@ -131,6 +202,14 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onPeriodChange(): void {
+    this.loadAggregatedData();
+  }
+
+  onMetricChange(): void {
+    this.loadAggregatedData();
   }
 
   prepareChartData(measurements: Measurement[]): void {

@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Front-Hub",
+    "description": "IoT device management and monitoring system"
+  },
+  "common": {
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "error": "Error",
+    "tryAgain": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "update": "Update",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "refresh": "Refresh",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "noData": "No data available",
+    "actions": "Actions",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Logout",
+    "register": "Create account",
+    "username": "Username",
+    "password": "Password",
+    "accessAccount": "Access your account",
+    "enterUsername": "Enter your username",
+    "enterPassword": "Enter your password",
+    "usernameRequired": "Username is required",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 4 characters",
+    "loginError": "Error signing in",
+    "noAccount": "Don't have an account?",
+    "accountCreated": "Account created successfully! Sign in to continue.",
+    "registerTitle": "Create new account",
+    "registerDescription": "Fill in the data to register",
+    "confirmPassword": "Confirm password",
+    "enterConfirmPassword": "Enter your password again",
+    "passwordMismatch": "Passwords do not match",
+    "registerError": "Error creating account",
+    "registerSuccess": "Account created successfully!"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Front-Hub system overview",
+    "stats": {
+      "total": "Total",
+      "active": "Active",
+      "inactive": "Inactive",
+      "maintenance": "Maintenance",
+      "error": "Error"
+    },
+    "recentDevices": "Recent Devices",
+    "unresolvedAlerts": "Unresolved Alerts",
+    "unresolvedAlertsCount": "Unresolved Alerts ({{count}})",
+    "unresolvedAlertsDescription": "Attention needed for the following devices",
+    "noRecentDevices": "No recent devices",
+    "noAlerts": "No pending alerts",
+    "viewAll": "View all",
+    "viewDevice": "View device",
+    "totalDevices": "Total Devices",
+    "active": "Active",
+    "inactive": "Inactive",
+    "maintenance": "Maintenance",
+    "error": "Error",
+    "recentDevices": "Recent Devices",
+    "noDevicesFound": "No devices found",
+    "createDevice": "Create Device",
+    "viewDetails": "View Details",
+    "createdAt": "Created at",
+    "severity": "Severity",
+    "deviceId": "Device ID"
+  },
+  "devices": {
+    "title": "Devices",
+    "newDevice": "New Device",
+    "editDevice": "Edit Device",
+    "deviceDetails": "Device Details",
+    "createDescription": "Fill in the data to create a new device",
+    "editDescription": "Update device information",
+    "loadingDevices": "Loading devices...",
+    "loadingDevice": "Loading device...",
+    "name": "Name",
+    "status": "Status",
+    "category": "Category",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional device description...",
+    "enterName": "Enter device name",
+    "nameRequired": "Name is required",
+    "nameMinLength": "Name must be at least 3 characters",
+    "descriptionMaxLength": "Description must be at most 1000 characters",
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "maintenance": "Maintenance",
+      "error": "Error"
+    },
+    "recentMeasurements": "Real-time Measurements",
+    "measurementHistory": "Precision History",
+    "chart": {
+      "title": "Precision History",
+      "period": "Period",
+      "metric": "Metric",
+      "selectPeriod": "Select period",
+      "selectMetric": "Select metric",
+      "loading": "Loading chart data...",
+      "noData": "No data available to display on chart",
+      "noDataDescription": "Data will appear here when there are device measurements",
+      "stats": {
+        "mean": "Mean",
+        "max": "Maximum",
+        "min": "Minimum"
+      },
+      "periods": {
+        "last_24h": "Last 24h",
+        "last_7d": "Last 7 days",
+        "last_30d": "Last 30 days",
+        "all": "All"
+      }
+    },
+    "aggregatedStats": {
+      "mean": "Mean",
+      "max": "Maximum",
+      "min": "Minimum"
+    },
+    "noMeasurementData": "No data available to display on chart",
+    "noMeasurementDataDescription": "Data will appear here when there are device measurements",
+    "loadingChart": "Loading chart data..."
+  },
+  "alerts": {
+    "title": "Alerts",
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "status": {
+      "pending": "Pending",
+      "resolved": "Resolved"
+    }
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "devices": "Devices",
+    "account": "My Account"
+  },
+  "account": {
+    "title": "My Account",
+    "accountDetails": "Account Details",
+    "username": "Username",
+    "createdAt": "Account created on",
+    "lastLogin": "Last access",
+    "menu": {
+      "accountDetails": "Account Details",
+      "logout": "Logout"
+    }
+  },
+  "language": {
+    "select": "Language",
+    "pt-BR": "Português (Brasil)",
+    "en-US": "English (US)"
+  }
+}
+

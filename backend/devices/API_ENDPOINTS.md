@@ -39,8 +39,37 @@ Content-Type: application/json
 ```
 
 **Query Parameters:**
+
+**Paginação:**
 - `page`: Número da página (padrão: 1)
 - `page_size`: Itens por página (padrão: 20, configurável no settings)
+
+**Filtros (django-filters):**
+- `status`: Filtrar por status do dispositivo (valores: `active`, `inactive`, `maintenance`, `error`)
+  - Exemplo: `/api/devices/?status=active`
+- `category`: Filtrar por ID da categoria
+  - Exemplo: `/api/devices/?category=1`
+- `name`: Busca parcial (case-insensitive) no nome do dispositivo
+  - Exemplo: `/api/devices/?name=sensor`
+- `created_after`: Filtrar dispositivos criados após uma data (formato ISO 8601)
+  - Exemplo: `/api/devices/?created_after=2024-01-01T00:00:00Z`
+- `created_before`: Filtrar dispositivos criados antes de uma data (formato ISO 8601)
+  - Exemplo: `/api/devices/?created_before=2024-12-31T23:59:59Z`
+
+**Busca (SearchFilter):**
+- `search`: Busca nos campos `name` e `description` (case-insensitive)
+  - Exemplo: `/api/devices/?search=temperature`
+
+**Ordenação (OrderingFilter):**
+- `ordering`: Ordenar por um ou mais campos (use `-` para ordem decrescente)
+  - Campos disponíveis: `name`, `status`, `created_at`, `updated_at`
+  - Exemplo: `/api/devices/?ordering=name` (ordem crescente por nome)
+  - Exemplo: `/api/devices/?ordering=-created_at,name` (mais recentes primeiro, depois por nome)
+
+**Exemplos Combinados:**
+- `/api/devices/?status=active&category=1` - Dispositivos ativos da categoria 1
+- `/api/devices/?status=active&search=sensor&ordering=-created_at` - Dispositivos ativos com "sensor" no nome/descrição, ordenados por mais recente
+- `/api/devices/?created_after=2024-01-01T00:00:00Z&status=active` - Dispositivos ativos criados após 01/01/2024
 
 ---
 
@@ -85,7 +114,7 @@ Content-Type: application/json
 ### 3. Dados Agregados do Dispositivo
 **Endpoint:** `GET /api/devices/{device_id}/aggregated-data/`
 
-**Descrição:** Retorna os últimos 100 pontos de medição de um dispositivo e dados agregados (Média/Máx/Mín).
+**Descrição:** Retorna pontos de medição de um dispositivo e dados agregados (Média/Máx/Mín) com suporte a filtros de período e métrica.
 
 **Autenticação:** Requerida (JWT Bearer Token)
 
@@ -97,6 +126,23 @@ Content-Type: application/json
 
 **Path Parameters:**
 - `device_id`: ID do dispositivo (integer)
+
+**Query Parameters (Opcionais):**
+- `period`: Filtro por período de tempo
+  - Valores possíveis: `last_24h`, `last_7d`, `last_30d`, `all`
+  - Padrão: `all`
+  - Exemplo: `?period=last_24h`
+- `metric`: Filtro por nome da métrica (case-insensitive)
+  - Exemplo: `?metric=temperature`
+- `limit`: Número máximo de medições a retornar
+  - Padrão: `100`
+  - Exemplo: `?limit=200`
+
+**Exemplos de Uso:**
+- `/api/devices/1/aggregated-data/` - Todas as medições (últimas 100)
+- `/api/devices/1/aggregated-data/?period=last_24h` - Últimas 24 horas
+- `/api/devices/1/aggregated-data/?period=last_7d&metric=temperature` - Temperatura dos últimos 7 dias
+- `/api/devices/1/aggregated-data/?period=last_30d&metric=humidity&limit=500` - Umidade dos últimos 30 dias (até 500 pontos)
 
 **Response (200 OK):**
 ```json
@@ -171,9 +217,33 @@ Content-Type: application/json
 ```
 
 **Query Parameters:**
-- `device_id` (opcional): Filtrar alertas por dispositivo específico (integer)
-- `status` (opcional): Filtrar por status (`pending` ou `resolved`)
-- `unresolved_only` (opcional): Filtrar apenas alertas não resolvidos (`true`)
+
+**Paginação:**
+- `page`: Número da página (padrão: 1)
+- `page_size`: Itens por página (padrão: 20, configurável no settings)
+
+**Filtros (django-filters):**
+- `device`: Filtrar por ID do dispositivo (integer)
+  - Exemplo: `/api/alerts/?device=1`
+- `status`: Filtrar por status do alerta (valores: `pending`, `resolved`)
+  - Exemplo: `/api/alerts/?status=pending`
+- `severity`: Filtrar por severidade do alerta (valores: `low`, `medium`, `high`, `critical`)
+  - Exemplo: `/api/alerts/?severity=high`
+- `device_status`: Filtrar por status do dispositivo associado (valores: `active`, `inactive`, `maintenance`, `error`)
+  - Exemplo: `/api/alerts/?device_status=active`
+- `unresolved_only`: Filtrar apenas alertas não resolvidos (`true` ou `false`)
+  - Exemplo: `/api/alerts/?unresolved_only=true`
+
+**Ordenação (OrderingFilter):**
+- `ordering`: Ordenar por um ou mais campos (use `-` para ordem decrescente)
+  - Campos disponíveis: `created_at`, `severity`, `status`
+  - Exemplo: `/api/alerts/?ordering=-created_at` (mais recentes primeiro)
+  - Exemplo: `/api/alerts/?ordering=-severity,created_at` (severidade decrescente, depois por data)
+
+**Exemplos Combinados:**
+- `/api/alerts/?device=1&status=pending` - Alertas pendentes do dispositivo 1
+- `/api/alerts/?severity=high&unresolved_only=true&ordering=-created_at` - Alertas de alta severidade não resolvidos, ordenados por mais recente
+- `/api/alerts/?device_status=error&severity=critical` - Alertas críticos de dispositivos com erro
 
 **Response (200 OK):**
 ```json
@@ -207,10 +277,16 @@ GET /api/alerts/
 GET /api/alerts/?unresolved_only=true
 
 # Filtrar alertas de um dispositivo específico
-GET /api/alerts/?device_id=1
+GET /api/alerts/?device=1
 
 # Filtrar alertas resolvidos
 GET /api/alerts/?status=resolved
+
+# Filtrar por severidade e ordenar
+GET /api/alerts/?severity=high&ordering=-created_at
+
+# Filtrar alertas de dispositivos ativos
+GET /api/alerts/?device_status=active
 ```
 
 ---

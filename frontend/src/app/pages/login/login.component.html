@@ -3,8 +3,8 @@
     <p-card styleClass="login-card shadow-lg">
       <!-- Header -->
       <div class="text-center py-6">
-        <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--primary-color)]">Front-Hub</h1>
-        <p class="m-0 text-[var(--text-color-secondary)] text-[0.95rem]">Acesse sua conta</p>
+        <h1 class="m-0 mb-2 text-3xl font-semibold text-[var(--primary-color)]">{{ 'app.title' | translate }}</h1>
+        <p class="m-0 text-[var(--text-color-secondary)] text-[0.95rem]">{{ 'auth.accessAccount' | translate }}</p>
       </div>
 
       <!-- Success Message -->
@@ -28,22 +28,22 @@
         <!-- Username Field -->
         <div class="mb-6">
           <label for="username" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
-            Usuário <span class="text-red-500">*</span>
+            {{ 'auth.username' | translate }} <span class="text-red-500">*</span>
           </label>
           <input 
             id="username"
             type="text"
             pInputText
             formControlName="username"
-            placeholder="Digite seu usuário"
+            [placeholder]="'auth.enterUsername' | translate"
             class="w-full"
             [class.ng-invalid]="username?.invalid && username?.touched"
             [class.ng-valid]="username?.valid && username?.touched"
             />
           <ng-container *ngIf="username?.invalid && username?.touched">
             <small class="text-red-500 text-xs block mt-1">
-              <span *ngIf="username?.errors?.['required']">Usuário é obrigatório</span>
-              <span *ngIf="username?.errors?.['minlength']">Usuário deve ter pelo menos 3 caracteres</span>
+              <span *ngIf="username?.errors?.['required']">{{ 'auth.usernameRequired' | translate }}</span>
+              <span *ngIf="username?.errors?.['minlength']">{{ 'auth.usernameMinLength' | translate }}</span>
             </small>
           </ng-container>
         </div>
@@ -51,12 +51,12 @@
         <!-- Password Field -->
         <div class="mb-6">
           <label for="password" class="block mb-2 font-medium text-[var(--text-color)] text-[0.95rem]">
-            Senha <span class="text-red-500">*</span>
+            {{ 'auth.password' | translate }} <span class="text-red-500">*</span>
           </label>
           <p-password 
             id="password"
             formControlName="password"
-            placeholder="Digite sua senha"
+            [placeholder]="'auth.enterPassword' | translate"
             [feedback]="false"
             [toggleMask]="true"
             styleClass="w-full"
@@ -66,8 +66,8 @@
           </p-password>
           <ng-container *ngIf="password?.invalid && password?.touched">
             <small class="text-red-500 text-xs block mt-1">
-              <span *ngIf="password?.errors?.['required']">Senha é obrigatória</span>
-              <span *ngIf="password?.errors?.['minlength']">Senha deve ter pelo menos 4 caracteres</span>
+              <span *ngIf="password?.errors?.['required']">{{ 'auth.passwordRequired' | translate }}</span>
+              <span *ngIf="password?.errors?.['minlength']">{{ 'auth.passwordMinLength' | translate }}</span>
             </small>
           </ng-container>
         </div>
@@ -76,7 +76,7 @@
         <div class="mt-8">
           <p-button 
             type="submit"
-            label="Entrar"
+            [label]="'auth.login' | translate"
             icon="pi pi-arrow-right"
             iconPos="right"
             [loading]="loading"
@@ -88,9 +88,9 @@
         <!-- Register Link -->
         <div class="mt-6 text-center">
           <p class="text-[var(--text-color-secondary)] text-sm">
-            Não tem uma conta?
+            {{ 'auth.noAccount' | translate }}
             <a routerLink="/register" class="text-[var(--primary-color)] font-medium hover:underline ml-1">
-              Criar conta
+              {{ 'auth.register' | translate }}
             </a>
           </p>
         </div>
