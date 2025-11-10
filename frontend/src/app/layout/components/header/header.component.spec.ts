@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { ChangeDetectorRef } from '@angular/core';
 import { HeaderComponent } from './header.component';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -105,13 +105,13 @@ describe('HeaderComponent', () => {
   describe('@HostListener onDocumentClick', () => {
     it('deve fechar o menu quando clicar fora do container', () => {
       component.isAccountMenuOpen = true;
-      const event = new MouseEvent('click', {
+      const target = document.createElement('div');
+      const event = {
+        target,
         bubbles: true,
         cancelable: true
-      });
+      } as unknown as MouseEvent;
 
-      const target = document.createElement('div');
-      spyOn(event, 'target').and.returnValue(target);
       spyOn(target, 'closest').and.returnValue(null);
 
       component.onDocumentClick(event);
@@ -122,15 +122,15 @@ describe('HeaderComponent', () => {
 
     it('não deve fechar o menu quando clicar dentro do container', () => {
       component.isAccountMenuOpen = true;
-      const event = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true
-      });
-
       const target = document.createElement('div');
       const container = document.createElement('div');
       container.className = 'account-menu-container';
-      spyOn(event, 'target').and.returnValue(target);
+      const event = {
+        target,
+        bubbles: true,
+        cancelable: true
+      } as unknown as MouseEvent;
+
       spyOn(target, 'closest').and.returnValue(container);
 
       component.onDocumentClick(event);
