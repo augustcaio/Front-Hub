@@ -7,10 +7,13 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "lint": "ng lint",
+    "type-check": "ng build --configuration development",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "semantic-release --dry-run",
-    "prepare": "husky install",
-    "commitlint": "commitlint --edit"
+    "prepare": "node -e \"if(process.env.CI !== 'true' && process.env.HUSKY !== '0') require('husky').install()\" || true",
+    "commitlint": "commitlint --edit",
+    "commitlint:ci": "commitlint --from HEAD~1 --to HEAD --verbose"
   },
   "prettier": {
     "printWidth": 100,

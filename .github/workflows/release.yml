@@ -33,12 +33,31 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
+        env:
+          CI: 'true'
+          HUSKY: '0'
         run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Validate commits
+        working-directory: ./frontend
+        run: |
+          # Valida commits desde a última tag ou desde o início se não houver tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "Nenhuma tag encontrada, validando todos os commits"
+            npx commitlint --from HEAD~50 --to HEAD --verbose || true
+          else
+            echo "Validando commits desde a tag $LAST_TAG"
+            npx commitlint --from $LAST_TAG --to HEAD --verbose
+          fi
+
+      - name: Type check
+        working-directory: ./frontend
+        run: npm run type-check
 
       - name: Run tests
         working-directory: ./frontend
         run: npm test -- --watch=false --browsers=ChromeHeadless
-        continue-on-error: true
 
       - name: Build application
         working-directory: ./frontend

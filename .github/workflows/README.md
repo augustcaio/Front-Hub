@@ -11,8 +11,10 @@ Este diretório contém os workflows de CI/CD configurados para o projeto Front-
 - Pull requests para `main` ou `develop`
 
 **O que faz:**
+- ✅ Valida commits em Pull Requests (Conventional Commits)
 - ✅ Instala dependências
-- ✅ Executa linter (se configurado)
+- ✅ Executa type checking TypeScript
+- ✅ Executa linter
 - ✅ Executa testes com cobertura de código
 - ✅ Faz build da aplicação Angular
 - ✅ Faz upload dos artefatos de build
@@ -29,7 +31,9 @@ Este diretório contém os workflows de CI/CD configurados para o projeto Front-
 
 **O que faz:**
 - ✅ Instala dependências
-- ✅ Executa testes (opcional, continua mesmo se falhar)
+- ✅ Valida commits (Conventional Commits)
+- ✅ Executa type checking TypeScript
+- ✅ Executa testes
 - ✅ Faz build da aplicação Angular
 - ✅ Analisa commits seguindo Conventional Commits
 - ✅ Gera nova versão automaticamente (se houver `feat:` ou `fix:`)
@@ -61,18 +65,22 @@ Este diretório contém os workflows de CI/CD configurados para o projeto Front-
 
 2. **GitHub Actions detecta o push** e executa o workflow `release.yml`
 
-3. **Semantic Release analisa os commits:**
+3. **Validação de commits:**
+   - Valida se os commits seguem o padrão Conventional Commits
+   - Falha o workflow se houver commits inválidos
+
+4. **Semantic Release analisa os commits:**
    - Se encontrar `feat:` → Incrementa versão **minor** (1.0.0 → 1.1.0)
    - Se encontrar `fix:` → Incrementa versão **patch** (1.0.0 → 1.0.1)
    - Se encontrar `BREAKING CHANGE:` → Incrementa versão **major** (1.0.0 → 2.0.0)
 
-4. **Se houver nova versão:**
+5. **Se houver nova versão:**
    - Atualiza `package.json`
    - Gera/atualiza `CHANGELOG.md`
    - Cria release no GitHub
    - Faz commit das alterações
 
-5. **Se não houver nova versão:**
+6. **Se não houver nova versão:**
    - Workflow termina sem criar release
 
 ### Convenções de Commit:
@@ -107,6 +115,12 @@ O `GITHUB_TOKEN` é fornecido automaticamente pelo GitHub Actions. Não é neces
 
 O workflow usa cache do npm para acelerar as instalações. O cache é baseado no arquivo `frontend/package-lock.json`.
 
+### Husky no CI
+
+O Husky está configurado para não executar em ambiente CI através das variáveis de ambiente:
+- `CI: 'true'`
+- `HUSKY: '0'`
+
 ---
 
 ## 📊 Monitoramento
@@ -122,6 +136,7 @@ O workflow usa cache do npm para acelerar as instalações. O cache é baseado n
 - Cada step do workflow gera logs detalhados
 - Em caso de erro, os logs mostram exatamente onde falhou
 - O semantic-release mostra quais commits foram analisados
+- A validação de commits mostra quais commits são inválidos
 
 ---
 
@@ -138,11 +153,18 @@ O workflow usa cache do npm para acelerar as instalações. O cache é baseado n
 - ✅ Verifique se há commits `feat:` ou `fix:` desde a última release
 - ✅ Verifique se os commits seguem o padrão Conventional Commits
 - ✅ Verifique os logs do workflow para ver a análise dos commits
+- ✅ Verifique se a validação de commits passou
 
 ### Erro de permissões:
 
 - ✅ Verifique se o workflow tem as permissões necessárias
 - ✅ Verifique se o `GITHUB_TOKEN` está disponível (é automático)
+
+### Validação de commits falha:
+
+- ✅ Verifique se os commits seguem o padrão Conventional Commits
+- ✅ Consulte `frontend/CONVENTIONAL_COMMITS.md` para exemplos
+- ✅ Verifique os logs do commitlint para ver qual commit está inválido
 
 ---
 
@@ -151,3 +173,5 @@ O workflow usa cache do npm para acelerar as instalações. O cache é baseado n
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Semantic Release Documentation](https://semantic-release.gitbook.io/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
+- [Commitlint Documentation](https://commitlint.js.org/)
+
