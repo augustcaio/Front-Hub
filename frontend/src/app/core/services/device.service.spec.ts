@@ -5,8 +5,6 @@ import {
 } from '@angular/common/http/testing';
 import { DeviceService, Device, DeviceListResponse, AggregatedDataResponse, AlertListResponse } from './device.service';
 import { AuthService } from './auth.service';
-import { HttpErrorResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
 
 describe('DeviceService', () => {
   let service: DeviceService;

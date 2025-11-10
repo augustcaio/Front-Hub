@@ -1,8 +1,6 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { CanActivateFn, UrlTree } from '@angular/router';
 
-export function roleGuard(allowedRoles: Array<'admin' | 'operator' | 'visitor'>): CanActivateFn {
+export function roleGuard(_allowedRoles: ('admin' | 'operator' | 'visitor')[]): CanActivateFn {
   return (): boolean | UrlTree => {
     // Fase pausada: sempre permitir acesso
     return true;

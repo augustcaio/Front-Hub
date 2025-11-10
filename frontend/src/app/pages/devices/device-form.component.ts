@@ -11,7 +11,6 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
-  AbstractControl,
 } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
@@ -24,11 +23,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DeviceService,
-  Device,
   DeviceCreateRequest,
   Category,
 } from '../../core/services/device.service';
-import { Observable } from 'rxjs';
 
 interface StatusOption {
   label: string;

@@ -5,7 +5,6 @@
 import { ALERT_SEVERITY, ALERT_STATUS } from './constants';
 
 type AlertSeverityType = typeof ALERT_SEVERITY[keyof typeof ALERT_SEVERITY];
-type AlertStatusType = typeof ALERT_STATUS[keyof typeof ALERT_STATUS];
 type SeveritySeverity = 'success' | 'info' | 'warn' | 'error';
 
 /**

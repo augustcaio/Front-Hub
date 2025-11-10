@@ -30,7 +30,7 @@ export interface DeviceCreateRequest {
   description?: string;
 }
 
-export interface DeviceUpdateRequest extends Partial<DeviceCreateRequest> {}
+export type DeviceUpdateRequest = Partial<DeviceCreateRequest>;
 
 export interface DeviceListResponse {
   count: number;
@@ -189,7 +189,7 @@ export class DeviceService {
           return response;
         }
         // Se for paginado, retornar results
-        return (response as any).results || [];
+        return (response as { results?: Device[] }).results || [];
       }),
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );
@@ -198,10 +198,10 @@ export class DeviceService {
   /**
    * Conta dispositivos por status
    */
-  getDevicesByStatus(): Observable<{ [key: string]: number }> {
+  getDevicesByStatus(): Observable<Record<string, number>> {
     return this.getDevices().pipe(
       map((response) => {
-        const statusCount: { [key: string]: number } = {
+        const statusCount: Record<string, number> = {
           active: 0,
           inactive: 0,
           maintenance: 0,
@@ -233,7 +233,7 @@ export class DeviceService {
     deviceId: number,
     period: ChartPeriod = 'all',
     metric?: string | null,
-    limit: number = 100
+    limit = 100
   ): Observable<AggregatedDataResponse> {
     const headers = this.getAuthHeaders();
     let url = `${this.devicesEndpoint}${deviceId}/aggregated-data/?period=${period}&limit=${limit}`;
@@ -258,7 +258,7 @@ export class DeviceService {
   /**
    * Lista todos os alertas
    */
-  getAlerts(unresolvedOnly: boolean = false): Observable<AlertListResponse> {
+  getAlerts(unresolvedOnly = false): Observable<AlertListResponse> {
     const headers = this.getAuthHeaders();
     const params = unresolvedOnly ? '?unresolved_only=true' : '';
     return this.http

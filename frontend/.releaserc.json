@@ -26,7 +26,8 @@
       {
         "assets": [
           {
-            "path": "dist/frontend-hub/**/*"
+            "path": "dist/frontend-hub/**/*",
+            "label": "Build artifacts"
           }
         ]
       }

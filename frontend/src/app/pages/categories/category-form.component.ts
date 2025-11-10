@@ -22,10 +22,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   CategoryService,
-  Category,
   CategoryCreateRequest,
 } from '../../core/services/category.service';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-category-form',

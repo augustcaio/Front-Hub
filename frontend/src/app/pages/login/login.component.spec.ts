@@ -11,7 +11,7 @@ describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
   let authService: jasmine.SpyObj<AuthService>;
   let router: jasmine.SpyObj<Router>;
-  let activatedRoute: any;
+  let activatedRoute: jasmine.SpyObj<ActivatedRoute>;
   let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {

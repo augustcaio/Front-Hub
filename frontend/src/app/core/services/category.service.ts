@@ -17,7 +17,7 @@ export interface CategoryCreateRequest {
   description?: string;
 }
 
-export interface CategoryUpdateRequest extends Partial<CategoryCreateRequest> {}
+export type CategoryUpdateRequest = Partial<CategoryCreateRequest>;
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +40,7 @@ export class CategoryService {
           return response;
         }
         // Se for paginado, retornar results
-        return (response as any).results || [];
+        return (response as { results?: Category[] }).results || [];
       }),
       catchError((error: HttpErrorResponse) => this.handleError(error))
     );

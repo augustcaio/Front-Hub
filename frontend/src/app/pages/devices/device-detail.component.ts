@@ -52,14 +52,14 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   
   wsConnected = false;
   wsStatus: WsConnectionStatus = WS_CONNECTION_STATUS.DISCONNECTED;
-  recentMeasurements: Array<{
+  recentMeasurements: {
     id: number;
     device: number;
     metric: string;
     value: string;
     unit: string;
     timestamp: string;
-  }> = [];
+  }[] = [];
   private wsSubscription?: Subscription;
   private wsStatusSubscription?: Subscription;
 
@@ -76,7 +76,7 @@ export class DeviceDetailComponent implements OnInit, OnDestroy {
   selectedPeriod: ChartPeriod = 'all';
   selectedMetric: string | null = null;
   availableMetrics: string[] = [];
-  periodOptions: Array<{ label: string; value: ChartPeriod }> = [];
+  periodOptions: { label: string; value: ChartPeriod }[] = [];
 
   constructor() {
     // Observar mudanças de idioma para atualizar labels

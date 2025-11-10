@@ -5,7 +5,6 @@ import {
 } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AuthService, LoginResponse, TokenVerifyResponse } from './auth.service';
-import { HttpErrorResponse } from '@angular/common/http';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -137,9 +136,6 @@ describe('AuthService', () => {
 
     it('deve atualizar isAuthenticated$ após logout', () => {
       localStorage.setItem('access_token', 'token123');
-      
-      // Verificar valor antes do logout (pode ser true ou false dependendo do token)
-      const initialValue = service.isAuthenticated();
       
       // Fazer logout
       service.logout();

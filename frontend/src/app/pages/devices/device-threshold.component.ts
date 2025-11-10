@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DeviceService, Threshold, ThresholdListResponse } from '../../core/services/device.service';
+import { DeviceService, Threshold } from '../../core/services/device.service';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,7 @@ export class DeviceThresholdComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   publicId = '';
-  loading: boolean = true;
+  loading = true;
   error: string | null = null;
   thresholds: Threshold[] = [];
   metrics: { label: string; value: string }[] = [];
@@ -74,7 +74,7 @@ export class DeviceThresholdComponent implements OnInit {
     };
     this.deviceService.createDeviceThreshold(this.publicId, payload).subscribe({
       next: () => {
-        this.form.reset({ metric_name: '', min_limit: null as any, max_limit: null as any, is_active: true });
+        this.form.reset({ metric_name: '', min_limit: null as unknown as number, max_limit: null as unknown as number, is_active: true });
         this.fetchThresholds();
       },
       error: (err) => this.error = err.message || 'Falha ao criar limite'
