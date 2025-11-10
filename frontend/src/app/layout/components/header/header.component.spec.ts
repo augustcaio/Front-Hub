@@ -8,6 +8,7 @@ describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let authService: jasmine.SpyObj<AuthService>;
+  let router: jasmine.SpyObj<Router>;
   let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {
