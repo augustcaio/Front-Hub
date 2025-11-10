@@ -2,90 +2,152 @@
 
 Este diretório contém os workflows de CI/CD configurados para o projeto Front-Hub.
 
-## Workflow Principal: `ci.yml`
+## 📋 Workflows Disponíveis
 
-### Descrição
-Workflow de Integração Contínua que executa testes e builds do backend (Django) e frontend (Angular) em cada push e pull request.
+### 1. 🔄 `ci.yml` - Continuous Integration
 
-### Triggers
-- Push para branches: `main`, `develop`, `master`
-- Pull requests para branches: `main`, `develop`, `master`
+**Quando executa:**
+- Push para branches: `main`, `develop`, `feature/**`, `fix/**`
+- Pull requests para `main` ou `develop`
 
-### Jobs
+**O que faz:**
+- ✅ Instala dependências
+- ✅ Executa linter (se configurado)
+- ✅ Executa testes com cobertura de código
+- ✅ Faz build da aplicação Angular
+- ✅ Faz upload dos artefatos de build
 
-#### 1. `backend-tests`
-- **Objetivo**: Executar testes unitários e de integração do backend Django
-- **Serviços**:
-  - PostgreSQL 14 (banco de dados)
-  - Redis 7 (para Channel Layer)
-- **Etapas**:
-  - Setup Python 3.11
-  - Instalação de dependências do sistema
-  - Instalação de dependências Python
-  - Linting com flake8
-  - Execução de migrações do banco de dados
-  - Execução de testes Django
-  - Geração de relatório de cobertura de código
+**Status:** Executa em todas as mudanças de código para garantir qualidade.
 
-#### 2. `frontend-tests`
-- **Objetivo**: Executar testes unitários do frontend Angular
-- **Etapas**:
-  - Setup Node.js 18
-  - Instalação de dependências NPM
-  - Linting (se configurado)
-  - Execução de testes unitários com Karma/ChromeHeadless
-  - Geração de relatório de cobertura
+---
 
-#### 3. `backend-build`
-- **Objetivo**: Verificar se o build do backend funciona corretamente
-- **Dependências**: Requer que `backend-tests` passe
-- **Etapas**:
-  - Setup Python 3.11
-  - Instalação de dependências
-  - Verificação de configuração Django para produção
-  - Coleta de arquivos estáticos
+### 2. 🚀 `release.yml` - Semantic Release
 
-#### 4. `frontend-build`
-- **Objetivo**: Verificar se o build do frontend funciona corretamente
-- **Dependências**: Requer que `frontend-tests` passe
-- **Etapas**:
-  - Setup Node.js 18
-  - Instalação de dependências NPM
-  - Build da aplicação Angular em modo produção
-  - Verificação de artefatos de build
+**Quando executa:**
+- Push para branches: `main` (produção) ou `beta` (pré-release)
+- **Não executa** se o commit contém `[skip ci]` na mensagem
 
-#### 5. `all-tests-pass`
-- **Objetivo**: Job de agregação que confirma que todos os jobs anteriores foram bem-sucedidos
-- **Dependências**: Requer que todos os jobs anteriores passem
+**O que faz:**
+- ✅ Instala dependências
+- ✅ Executa testes (opcional, continua mesmo se falhar)
+- ✅ Faz build da aplicação Angular
+- ✅ Analisa commits seguindo Conventional Commits
+- ✅ Gera nova versão automaticamente (se houver `feat:` ou `fix:`)
+- ✅ Atualiza `CHANGELOG.md`
+- ✅ Atualiza `package.json` com nova versão
+- ✅ Cria release no GitHub com os arquivos de build
+- ✅ Faz commit das alterações (package.json e CHANGELOG.md)
+
+**Permissões necessárias:**
+- `contents: write` - Para criar releases e fazer commits
+- `issues: write` - Para criar issues relacionadas (se configurado)
+- `pull-requests: write` - Para comentar em PRs (se configurado)
+
+**Tokens:**
+- `GITHUB_TOKEN` - Fornecido automaticamente pelo GitHub Actions
+- `NPM_TOKEN` - Opcional, apenas se precisar publicar no npm (não necessário para projetos privados)
+
+---
+
+## 🎯 Como Funciona o Semantic Release
+
+### Fluxo Automático:
+
+1. **Desenvolvedor faz commit:**
+   ```bash
+   git commit -m "feat(dashboard): adiciona gráfico de temperatura"
+   git push origin main
+   ```
+
+2. **GitHub Actions detecta o push** e executa o workflow `release.yml`
+
+3. **Semantic Release analisa os commits:**
+   - Se encontrar `feat:` → Incrementa versão **minor** (1.0.0 → 1.1.0)
+   - Se encontrar `fix:` → Incrementa versão **patch** (1.0.0 → 1.0.1)
+   - Se encontrar `BREAKING CHANGE:` → Incrementa versão **major** (1.0.0 → 2.0.0)
+
+4. **Se houver nova versão:**
+   - Atualiza `package.json`
+   - Gera/atualiza `CHANGELOG.md`
+   - Cria release no GitHub
+   - Faz commit das alterações
+
+5. **Se não houver nova versão:**
+   - Workflow termina sem criar release
+
+### Convenções de Commit:
+
+| Tipo | Exemplo | Impacto na Versão |
+|------|---------|-------------------|
+| `feat:` | `feat(auth): adiciona login social` | Minor (1.0.0 → 1.1.0) |
+| `fix:` | `fix(api): corrige timeout` | Patch (1.0.0 → 1.0.1) |
+| `BREAKING CHANGE:` | `feat(api): refatora endpoints`<br>`BREAKING CHANGE: remove endpoint /v1/users` | Major (1.0.0 → 2.0.0) |
+| `docs:`, `style:`, `refactor:`, `test:`, `chore:` | `chore: atualiza dependências` | Nenhum |
+
+---
+
+## 🔧 Configuração
+
+### Permissões do Workflow
+
+Os workflows já estão configurados com as permissões necessárias. Se precisar ajustar, edite o arquivo `.github/workflows/release.yml`:
+
+```yaml
+permissions:
+  contents: write    # Para criar releases e commits
+  issues: write      # Para criar issues (opcional)
+  pull-requests: write  # Para comentar em PRs (opcional)
+```
 
 ### Variáveis de Ambiente
 
-#### Backend
-- `DJANGO_SECRET_KEY`: Chave secreta para testes
-- `DJANGO_DEBUG`: Modo de debug (desabilitado em CI)
-- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Configuração do banco de dados
-- `REDIS_HOST`, `REDIS_PORT`: Configuração do Redis
+O `GITHUB_TOKEN` é fornecido automaticamente pelo GitHub Actions. Não é necessário configurar secrets adicionais.
 
-### Cobertura de Código
+### Cache do npm
 
-Os relatórios de cobertura são automaticamente enviados para o Codecov (se configurado):
-- Backend: `coverage.xml` gerado pelo `coverage.py`
-- Frontend: `coverage-final.json` gerado pelo Karma
+O workflow usa cache do npm para acelerar as instalações. O cache é baseado no arquivo `frontend/package-lock.json`.
 
-### Notas Importantes
+---
 
-1. **Testes do Frontend**: Os testes do Angular são executados em modo headless (ChromeHeadless) e podem falhar silenciosamente (`|| true`) para não bloquear o pipeline se houver problemas de configuração.
+## 📊 Monitoramento
 
-2. **Testes do Backend**: Requerem PostgreSQL e Redis rodando como serviços do GitHub Actions.
+### Verificar Execução dos Workflows:
 
-3. **Cache**: O workflow utiliza cache do NPM e pip para acelerar builds subsequentes.
+1. Acesse o repositório no GitHub
+2. Clique na aba **"Actions"**
+3. Veja os workflows em execução ou histórico
 
-4. **Segurança**: As credenciais do banco de dados usadas são apenas para CI e não devem ser usadas em produção.
+### Logs e Debugging:
 
-### Melhorias Futuras
+- Cada step do workflow gera logs detalhados
+- Em caso de erro, os logs mostram exatamente onde falhou
+- O semantic-release mostra quais commits foram analisados
 
-- [ ] Adicionar testes E2E com Cypress ou Playwright
-- [ ] Integração com serviços de qualidade de código (SonarQube, CodeClimate)
-- [ ] Deploy automático em staging após testes bem-sucedidos
-- [ ] Notificações em Slack/Email quando o pipeline falhar
+---
 
+## 🚨 Troubleshooting
+
+### Workflow não executa:
+
+- ✅ Verifique se está fazendo push para `main` ou `beta`
+- ✅ Verifique se o commit não contém `[skip ci]`
+- ✅ Verifique se o arquivo `.github/workflows/release.yml` está no repositório
+
+### Semantic Release não cria versão:
+
+- ✅ Verifique se há commits `feat:` ou `fix:` desde a última release
+- ✅ Verifique se os commits seguem o padrão Conventional Commits
+- ✅ Verifique os logs do workflow para ver a análise dos commits
+
+### Erro de permissões:
+
+- ✅ Verifique se o workflow tem as permissões necessárias
+- ✅ Verifique se o `GITHUB_TOKEN` está disponível (é automático)
+
+---
+
+## 📚 Recursos
+
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Semantic Release Documentation](https://semantic-release.gitbook.io/)
+- [Conventional Commits](https://www.conventionalcommits.org/)

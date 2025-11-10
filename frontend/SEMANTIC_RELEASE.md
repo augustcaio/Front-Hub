@@ -69,48 +69,39 @@ O semantic-release deve ser executado em um ambiente CI (GitHub Actions, GitLab 
 
 - `GITHUB_TOKEN` ou `GH_TOKEN`: Token do GitHub com permissões para criar releases
 
-### 4. Configurar GitHub Actions (Recomendado)
+### 4. GitHub Actions Workflows (✅ Já Configurado)
 
-Crie `.github/workflows/release.yml`:
+Os workflows do GitHub Actions já foram configurados:
 
-```yaml
-name: Release
+#### 📦 `.github/workflows/release.yml`
+Workflow de release automático que:
+- Executa quando há push na branch `main` ou `beta`
+- Instala dependências
+- Executa testes (opcional, continua mesmo se falhar)
+- Faz build da aplicação
+- Executa semantic-release automaticamente
+- Cria release no GitHub com os arquivos de build
 
-on:
-  push:
-    branches:
-      - main
+**Permissões necessárias:**
+- O `GITHUB_TOKEN` é fornecido automaticamente pelo GitHub Actions
+- Não é necessário configurar secrets adicionais
 
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Build
-        run: |
-          cd frontend
-          npm run build
-      
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd frontend
-          npm run semantic-release
-```
+#### 🔄 `.github/workflows/ci.yml`
+Workflow de CI que:
+- Executa em pushes e pull requests
+- Instala dependências
+- Executa linter (se configurado)
+- Executa testes com cobertura
+- Faz build da aplicação
+- Faz upload dos artefatos de build
+
+**Como funciona:**
+1. Faça commit seguindo o padrão Conventional Commits
+2. Faça push para a branch `main` ou `beta`
+3. O GitHub Actions executa automaticamente
+4. Se houver commits `feat:` ou `fix:`, uma nova versão é criada
+5. O CHANGELOG.md é atualizado automaticamente
+6. Uma release é criada no GitHub com os arquivos de build
 
 ## 📝 Convenções de Commit
 
@@ -164,8 +155,17 @@ Para produção, configure o GitHub Actions ou outro CI/CD.
 
 **Verifique:**
 1. Se há commits com `feat:` ou `fix:` desde a última release
-2. Se o token do GitHub está configurado corretamente
-3. Se está executando na branch `main`
+2. Se o workflow está executando corretamente (verifique a aba "Actions" no GitHub)
+3. Se está executando na branch `main` ou `beta`
+4. Se o commit não contém `[skip ci]` na mensagem
+5. Se as permissões do workflow estão corretas (contents: write, issues: write, pull-requests: write)
+
+### Problema: Workflow não executa
+
+**Solução:**
+- Verifique se o arquivo `.github/workflows/release.yml` está no repositório
+- Verifique se está fazendo push para a branch `main` ou `beta`
+- Verifique se o commit não contém `[skip ci]` na mensagem
 
 ## 📚 Recursos
 
