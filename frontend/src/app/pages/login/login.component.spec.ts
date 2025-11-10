@@ -11,7 +11,7 @@ describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
   let authService: jasmine.SpyObj<AuthService>;
   let router: jasmine.SpyObj<Router>;
-  let activatedRoute: Partial<ActivatedRoute>;
+  let activatedRoute: { snapshot: { queryParams: Record<string, string> } };
   let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('LoginComponent', () => {
 
     const activatedRouteMock = {
       snapshot: {
-        queryParams: {}
+        queryParams: {} as Record<string, string>
       }
     };
 
@@ -39,7 +39,7 @@ describe('LoginComponent', () => {
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    activatedRoute = TestBed.inject(ActivatedRoute);
+    activatedRoute = TestBed.inject(ActivatedRoute) as { snapshot: { queryParams: Record<string, string> } };
     cdr = TestBed.inject(ChangeDetectorRef) as jasmine.SpyObj<ChangeDetectorRef>;
   });
 
