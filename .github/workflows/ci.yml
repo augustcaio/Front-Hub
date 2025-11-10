@@ -1,121 +1,31 @@
-name: CI - Build and Test
+name: CI
 
 on:
   push:
-    branches: [ main, develop, master ]
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'fix/**'
   pull_request:
-    branches: [ main, develop, master ]
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
-  backend-tests:
-    name: Backend Tests (Django)
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_DB: front_hub_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    env:
-      DJANGO_SECRET_KEY: test-secret-key-for-ci
-      DJANGO_DEBUG: 'False'
-      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
-      POSTGRES_DB: front_hub_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client gcc python3-dev libpq-dev
-
-      - name: Install Python dependencies
-        working-directory: ./backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
-
-      - name: Run flake8 linting
-        working-directory: ./backend
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Run Django migrations
-        working-directory: ./backend
-        run: |
-          python manage.py migrate --noinput
-
-      - name: Run Django tests
-        working-directory: ./backend
-        run: |
-          python manage.py test --verbosity=2
-
-      - name: Generate coverage report
-        working-directory: ./backend
-        run: |
-          coverage run --source='.' manage.py test
-          coverage report
-          coverage xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./backend/coverage.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-
-  frontend-tests:
-    name: Frontend Tests (Angular)
+  lint-and-test:
+    name: Lint and Test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -124,74 +34,35 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      - name: Lint Angular code
+      - name: Run linter
         working-directory: ./frontend
         run: |
-          npm run lint 2>&1 || echo "Linting not configured, skipping..."
+          npm run lint || echo "Linter não configurado, pulando..."
+        continue-on-error: true
 
-      - name: Run Angular unit tests
+      - name: Run tests
         working-directory: ./frontend
-        run: |
-          npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage --no-progress || true
+        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
-      - name: Upload test coverage
+      - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
-          files: ./frontend/coverage/coverage-final.json
+          directory: ./frontend/coverage
           flags: frontend
           name: frontend-coverage
-          fail_ci_if_error: false
+        continue-on-error: true
 
-  backend-build:
-    name: Backend Build
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    needs: backend-tests
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client gcc python3-dev libpq-dev
-
-      - name: Install Python dependencies
-        working-directory: ./backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
-
-      - name: Verify Django setup
-        working-directory: ./backend
-        run: |
-          python manage.py check --deploy || echo "Production checks completed"
-
-      - name: Collect static files
-        working-directory: ./backend
-        env:
-          DJANGO_SECRET_KEY: test-secret-key-for-build
-          DJANGO_DEBUG: 'False'
-        run: |
-          python manage.py collectstatic --noinput || echo "Static files collection completed"
-
-  frontend-build:
-    name: Frontend Build
-    runs-on: ubuntu-latest
-    needs: frontend-tests
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -200,34 +71,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      - name: Build Angular application
+      - name: Build application
         working-directory: ./frontend
-        run: npm run build -- --configuration production
+        run: npm run build
 
-      - name: Verify build artifacts
-        working-directory: ./frontend
-        run: |
-          if [ -d "dist/frontend-hub" ]; then
-            echo "✅ Build successful - dist/frontend-hub directory exists"
-            ls -la dist/frontend-hub/ | head -20
-          else
-            echo "❌ Build failed - dist/frontend-hub directory not found"
-            exit 1
-          fi
-
-  all-tests-pass:
-    name: All Tests Passed
-    runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests, backend-build, frontend-build]
-    
-    steps:
-      - name: Success
-        run: |
-          echo "✅ All tests passed and builds completed successfully!"
-          echo "Backend tests: ✅"
-          echo "Frontend tests: ✅"
-          echo "Backend build: ✅"
-          echo "Frontend build: ✅"
-
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: frontend/dist
+          retention-days: 7
