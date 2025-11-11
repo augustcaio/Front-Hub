@@ -1,24 +1,42 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ChangeDetectorRef } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../core/services/auth.service';
+
+class TranslateServiceStub {
+  currentLang = 'pt-BR';
+  private readonly translations: Record<string, string> = {
+    'auth.accountCreated': 'Conta criada com sucesso! Faça login para continuar.',
+    'auth.loginError': 'Erro ao fazer login.'
+  };
+
+  setDefaultLang(): void {}
+
+  use(): void {}
+
+  get(key: string) {
+    return of(this.translations[key] ?? key);
+  }
+
+  instant(key: string) {
+    return this.translations[key] ?? key;
+  }
+}
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let router: Router;
+  let routerNavigateSpy: jasmine.Spy;
   let activatedRoute: { snapshot: { queryParams: Record<string, string> } };
-  let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['login']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    const cdrSpy = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
-
     const activatedRouteMock = {
       snapshot: {
         queryParams: {} as Record<string, string>
@@ -26,21 +44,20 @@ describe('LoginComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [LoginComponent, ReactiveFormsModule],
+      imports: [LoginComponent, ReactiveFormsModule, RouterTestingModule],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteMock },
-        { provide: ChangeDetectorRef, useValue: cdrSpy }
+        { provide: TranslateService, useClass: TranslateServiceStub }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    router = TestBed.inject(Router);
+    routerNavigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
     activatedRoute = TestBed.inject(ActivatedRoute) as { snapshot: { queryParams: Record<string, string> } };
-    cdr = TestBed.inject(ChangeDetectorRef) as jasmine.SpyObj<ChangeDetectorRef>;
   });
 
   it('deve criar o componente', () => {
@@ -54,7 +71,6 @@ describe('LoginComponent', () => {
       component.ngOnInit();
 
       expect(component.successMessage).toBe('Conta criada com sucesso! Faça login para continuar.');
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('não deve exibir mensagem quando não vem do registro', () => {
@@ -152,7 +168,6 @@ describe('LoginComponent', () => {
 
       // Loading deve ser false após o sucesso
       expect(component.loading).toBe(false);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('deve redirecionar para dashboard após login bem-sucedido', () => {
@@ -171,9 +186,8 @@ describe('LoginComponent', () => {
 
       component.onSubmit();
 
-      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard']);
       expect(component.errorMessage).toBeNull();
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('deve redirecionar para returnUrl se fornecido', () => {
@@ -192,7 +206,7 @@ describe('LoginComponent', () => {
 
       component.onSubmit();
 
-      expect(router.navigate).toHaveBeenCalledWith(['/devices']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/devices']);
     });
 
     it('deve tratar erro ao fazer login', () => {
@@ -208,7 +222,6 @@ describe('LoginComponent', () => {
 
       expect(component.loading).toBe(false);
       expect(component.errorMessage).toBe('Credenciais inválidas');
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 

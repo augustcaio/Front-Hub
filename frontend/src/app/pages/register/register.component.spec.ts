@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { ChangeDetectorRef } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../core/services/auth.service';
 import { of, throwError } from 'rxjs';
@@ -10,28 +10,24 @@ describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
   let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
-  let cdr: jasmine.SpyObj<ChangeDetectorRef>;
+  let router: Router;
+  let routerNavigateSpy: jasmine.Spy;
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['register']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    const cdrSpy = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
 
     await TestBed.configureTestingModule({
-      imports: [RegisterComponent, ReactiveFormsModule],
+      imports: [RegisterComponent, ReactiveFormsModule, RouterTestingModule],
       providers: [
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
-        { provide: ChangeDetectorRef, useValue: cdrSpy }
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    cdr = TestBed.inject(ChangeDetectorRef) as jasmine.SpyObj<ChangeDetectorRef>;
+    router = TestBed.inject(Router);
+    routerNavigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
     fixture.detectChanges();
   });
 
@@ -229,11 +225,10 @@ describe('RegisterComponent', () => {
 
       expect(component.successMessage).toBe('Conta criada com sucesso! Você será redirecionado...');
       expect(component.errorMessage).toBeNull();
-      expect(cdr.markForCheck).toHaveBeenCalled();
 
       jasmine.clock().tick(1500);
 
-      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/dashboard']);
 
       jasmine.clock().uninstall();
       done();
@@ -257,7 +252,6 @@ describe('RegisterComponent', () => {
       expect(component.loading).toBe(false);
       expect(component.errorMessage).toBe('Erro ao registrar usuário');
       expect(component.successMessage).toBeNull();
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 

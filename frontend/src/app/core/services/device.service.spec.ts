@@ -1,9 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import {
-  HttpClientTestingModule,
-  HttpTestingController
-} from '@angular/common/http/testing';
-import { DeviceService, Device, DeviceListResponse, AggregatedDataResponse, AlertListResponse } from './device.service';
+  DeviceService,
+  Device,
+  DeviceListResponse,
+  AggregatedDataResponse,
+  AlertListResponse,
+} from './device.service';
 import { AuthService } from './auth.service';
 
 describe('DeviceService', () => {
@@ -16,10 +19,7 @@ describe('DeviceService', () => {
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [
-        DeviceService,
-        { provide: AuthService, useValue: authServiceSpy }
-      ]
+      providers: [DeviceService, { provide: AuthService, useValue: authServiceSpy }],
     });
 
     service = TestBed.inject(DeviceService);
@@ -46,7 +46,7 @@ describe('DeviceService', () => {
             status: 'active',
             description: 'Descrição 1',
             created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            updated_at: '2024-01-01T00:00:00Z',
           },
           {
             id: 2,
@@ -55,9 +55,9 @@ describe('DeviceService', () => {
             status: 'inactive',
             description: 'Descrição 2',
             created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
-          }
-        ]
+            updated_at: '2024-01-01T00:00:00Z',
+          },
+        ],
       };
 
       service.getDevices().subscribe((response) => {
@@ -88,7 +88,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error.message).toContain('Não autorizado');
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');
@@ -105,7 +105,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error.message).toContain('Não foi possível conectar ao servidor');
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');
@@ -123,7 +123,7 @@ describe('DeviceService', () => {
         status: 'active',
         description: 'Descrição 1',
         created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
+        updated_at: '2024-01-01T00:00:00Z',
       };
 
       service.getDevice(1).subscribe((device) => {
@@ -144,7 +144,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error).toBeDefined();
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/999/');
@@ -160,12 +160,47 @@ describe('DeviceService', () => {
         next: null,
         previous: null,
         results: [
-          { id: 1, public_id: 'uuid-1', name: 'D1', status: 'active', created_at: '', updated_at: '' },
-          { id: 2, public_id: 'uuid-2', name: 'D2', status: 'active', created_at: '', updated_at: '' },
-          { id: 3, public_id: 'uuid-3', name: 'D3', status: 'inactive', created_at: '', updated_at: '' },
-          { id: 4, public_id: 'uuid-4', name: 'D4', status: 'maintenance', created_at: '', updated_at: '' },
-          { id: 5, public_id: 'uuid-5', name: 'D5', status: 'error', created_at: '', updated_at: '' }
-        ]
+          {
+            id: 1,
+            public_id: 'uuid-1',
+            name: 'D1',
+            status: 'active',
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 2,
+            public_id: 'uuid-2',
+            name: 'D2',
+            status: 'active',
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 3,
+            public_id: 'uuid-3',
+            name: 'D3',
+            status: 'inactive',
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 4,
+            public_id: 'uuid-4',
+            name: 'D4',
+            status: 'maintenance',
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 5,
+            public_id: 'uuid-5',
+            name: 'D5',
+            status: 'error',
+            created_at: '',
+            updated_at: '',
+          },
+        ],
       };
 
       service.getDevicesByStatus().subscribe((statusCount) => {
@@ -186,7 +221,7 @@ describe('DeviceService', () => {
         count: 0,
         next: null,
         previous: null,
-        results: []
+        results: [],
       };
 
       service.getDevicesByStatus().subscribe((statusCount) => {
@@ -208,7 +243,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error).toBeDefined();
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');
@@ -227,15 +262,15 @@ describe('DeviceService', () => {
             metric: 'temperature',
             value: '25.5',
             unit: '°C',
-            timestamp: '2024-01-01T00:00:00Z'
-          }
+            timestamp: '2024-01-01T00:00:00Z',
+          },
         ],
         statistics: {
           mean: 25.5,
           max: 30.0,
-          min: 20.0
+          min: 20.0,
         },
-        count: 1
+        count: 1,
       };
 
       service.getAggregatedData(1).subscribe((response) => {
@@ -244,7 +279,9 @@ describe('DeviceService', () => {
         expect(response.statistics.mean).toBe(25.5);
       });
 
-      const req = httpMock.expectOne('http://localhost:8000/api/devices/1/aggregated-data/');
+      const req = httpMock.expectOne(
+        'http://localhost:8000/api/devices/1/aggregated-data/?period=all&limit=100'
+      );
       expect(req.request.method).toBe('GET');
       expect(req.request.headers.get('Authorization')).toBe('Bearer token123');
       req.flush(mockResponse);
@@ -257,10 +294,12 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error).toBeDefined();
-        }
+        },
       });
 
-      const req = httpMock.expectOne('http://localhost:8000/api/devices/999/aggregated-data/');
+      const req = httpMock.expectOne(
+        'http://localhost:8000/api/devices/999/aggregated-data/?period=all&limit=100'
+      );
       req.flush({ detail: 'Not found.' }, { status: 404, statusText: 'Not Found' });
     });
   });
@@ -282,7 +321,7 @@ describe('DeviceService', () => {
             status: 'pending',
             created_at: '2024-01-01T00:00:00Z',
             updated_at: '2024-01-01T00:00:00Z',
-            resolved_at: null
+            resolved_at: null,
           },
           {
             id: 2,
@@ -293,9 +332,9 @@ describe('DeviceService', () => {
             status: 'resolved',
             created_at: '2024-01-01T00:00:00Z',
             updated_at: '2024-01-01T00:00:00Z',
-            resolved_at: '2024-01-01T01:00:00Z'
-          }
-        ]
+            resolved_at: '2024-01-01T01:00:00Z',
+          },
+        ],
       };
 
       service.getAlerts().subscribe((response) => {
@@ -324,14 +363,14 @@ describe('DeviceService', () => {
             status: 'pending',
             created_at: '2024-01-01T00:00:00Z',
             updated_at: '2024-01-01T00:00:00Z',
-            resolved_at: null
-          }
-        ]
+            resolved_at: null,
+          },
+        ],
       };
 
       service.getAlerts(true).subscribe((response) => {
         expect(response).toEqual(mockResponse);
-        expect(response.results.every(a => a.status === 'pending')).toBe(true);
+        expect(response.results.every((a) => a.status === 'pending')).toBe(true);
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/alerts?unresolved_only=true');
@@ -346,7 +385,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error).toBeDefined();
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/alerts');
@@ -371,9 +410,9 @@ describe('DeviceService', () => {
             status: 'pending',
             created_at: '2024-01-01T00:00:00Z',
             updated_at: '2024-01-01T00:00:00Z',
-            resolved_at: null
-          }
-        ]
+            resolved_at: null,
+          },
+        ],
       };
 
       service.getUnresolvedAlerts().subscribe((response) => {
@@ -390,14 +429,14 @@ describe('DeviceService', () => {
     it('deve tratar ErrorEvent (erro do cliente)', () => {
       authService.getToken.and.returnValue('token123');
       const errorEvent = new ErrorEvent('network', {
-        message: 'Network error'
+        message: 'Network error',
       });
 
       service.getDevices().subscribe({
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error.message).toContain('Erro: Network error');
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');
@@ -411,11 +450,14 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error.message).toBe('Error message from server');
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');
-      req.flush({ detail: 'Error message from server' }, { status: 400, statusText: 'Bad Request' });
+      req.flush(
+        { detail: 'Error message from server' },
+        { status: 400, statusText: 'Bad Request' }
+      );
     });
 
     it('deve tratar erro genérico sem detail', () => {
@@ -425,7 +467,7 @@ describe('DeviceService', () => {
         next: () => fail('deveria ter retornado erro'),
         error: (error: Error) => {
           expect(error.message).toContain('Erro 500');
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:8000/api/devices/');

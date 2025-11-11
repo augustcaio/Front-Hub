@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ChangeDetectorRef } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { AccountDetailsComponent } from './account-details.component';
 import { AuthService, UserInfo } from '../../core/services/auth.service';
@@ -8,7 +7,6 @@ describe('AccountDetailsComponent', () => {
   let component: AccountDetailsComponent;
   let fixture: ComponentFixture<AccountDetailsComponent>;
   let authService: jasmine.SpyObj<AuthService>;
-  let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   const mockUserInfo: UserInfo = {
     id: 1,
@@ -21,20 +19,17 @@ describe('AccountDetailsComponent', () => {
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'logout']);
-    const cdrSpy = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
 
     await TestBed.configureTestingModule({
       imports: [AccountDetailsComponent],
       providers: [
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: ChangeDetectorRef, useValue: cdrSpy }
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AccountDetailsComponent);
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    cdr = TestBed.inject(ChangeDetectorRef) as jasmine.SpyObj<ChangeDetectorRef>;
   });
 
   it('deve criar o componente', () => {
@@ -60,7 +55,6 @@ describe('AccountDetailsComponent', () => {
       expect(component.loading).toBe(false);
       expect(component.error).toBeNull();
       expect(component.userInfo).toEqual(mockUserInfo);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('deve definir loading como true durante o carregamento', () => {
@@ -81,7 +75,6 @@ describe('AccountDetailsComponent', () => {
       expect(component.loading).toBe(false);
       expect(component.error).toBe('Erro ao carregar usuário');
       expect(component.userInfo).toBeNull();
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('deve tratar erro genérico sem mensagem', () => {

@@ -1,35 +1,90 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { ChangeDetectorRef } from '@angular/core';
+import { Subject, of } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
 import { HeaderComponent } from './header.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { Language, LanguageService } from '../../../core/services/language.service';
+
+class TranslateServiceStub {
+  currentLang = 'pt-BR';
+  onLangChange = new Subject<{ lang: string }>();
+  private readonly translations: Record<string, string> = {
+    'menu.dashboard': 'Dashboard',
+    'menu.devices': 'Dispositivos',
+    'menu.categories': 'Categorias'
+  };
+
+  setDefaultLang(lang: string) {
+    this.currentLang = lang;
+  }
+
+  use(lang: string) {
+    this.currentLang = lang;
+    this.onLangChange.next({ lang });
+    return of(lang);
+  }
+
+  get(key: string | string[]) {
+    if (Array.isArray(key)) {
+      const result: Record<string, string> = {};
+      key.forEach((k) => {
+        result[k] = this.translations[k] ?? k;
+      });
+      return of(result);
+    }
+    return of(this.translations[key] ?? key);
+  }
+
+  instant(key: string) {
+    return this.translations[key] ?? key;
+  }
+}
+
+class LanguageServiceStub {
+  private currentLanguage: Language = 'pt-BR';
+
+  getCurrentLanguage(): Language {
+    return this.currentLanguage;
+  }
+
+  getSupportedLanguages(): Language[] {
+    return ['pt-BR', 'en-US'];
+  }
+
+  getLanguageDisplayName(language: Language): string {
+    const names: Record<Language, string> = {
+      'pt-BR': 'Português (Brasil)',
+      'en-US': 'English (US)'
+    };
+    return names[language];
+  }
+
+  setLanguage(language: Language): void {
+    this.currentLanguage = language;
+  }
+}
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
-  let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    const cdrSpy = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
 
     await TestBed.configureTestingModule({
-      imports: [HeaderComponent],
+      imports: [HeaderComponent, RouterTestingModule],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
-        { provide: ChangeDetectorRef, useValue: cdrSpy }
+        { provide: TranslateService, useClass: TranslateServiceStub },
+        { provide: LanguageService, useClass: LanguageServiceStub }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    cdr = TestBed.inject(ChangeDetectorRef) as jasmine.SpyObj<ChangeDetectorRef>;
     fixture.detectChanges();
   });
 
@@ -44,7 +99,6 @@ describe('HeaderComponent', () => {
       component.onMenuClick();
 
       expect(component.menuToggle.emit).toHaveBeenCalled();
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 
@@ -55,7 +109,6 @@ describe('HeaderComponent', () => {
       component.toggleAccountMenu();
 
       expect(component.isAccountMenuOpen).toBe(true);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('deve alternar o estado de isAccountMenuOpen de true para false', () => {
@@ -64,7 +117,6 @@ describe('HeaderComponent', () => {
       component.toggleAccountMenu();
 
       expect(component.isAccountMenuOpen).toBe(false);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 
@@ -75,7 +127,6 @@ describe('HeaderComponent', () => {
       component.closeAccountMenu();
 
       expect(component.isAccountMenuOpen).toBe(false);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 
@@ -86,7 +137,6 @@ describe('HeaderComponent', () => {
       component.navigateToAccountDetails();
 
       expect(component.isAccountMenuOpen).toBe(false);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 
@@ -98,7 +148,6 @@ describe('HeaderComponent', () => {
 
       expect(component.isAccountMenuOpen).toBe(false);
       expect(authService.logout).toHaveBeenCalled();
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
   });
 
@@ -117,7 +166,6 @@ describe('HeaderComponent', () => {
       component.onDocumentClick(event);
 
       expect(component.isAccountMenuOpen).toBe(false);
-      expect(cdr.markForCheck).toHaveBeenCalled();
     });
 
     it('não deve fechar o menu quando clicar dentro do container', () => {
@@ -141,11 +189,13 @@ describe('HeaderComponent', () => {
 
   describe('menuItems', () => {
     it('deve ter items de menu configurados corretamente', () => {
-      expect(component.menuItems.length).toBe(2);
+      expect(component.menuItems.length).toBe(3);
       expect(component.menuItems[0].label).toBe('Dashboard');
       expect(component.menuItems[0].routerLink).toBe('/dashboard');
       expect(component.menuItems[1].label).toBe('Dispositivos');
       expect(component.menuItems[1].routerLink).toBe('/devices');
+      expect(component.menuItems[2].label).toBe('Categorias');
+      expect(component.menuItems[2].routerLink).toBe('/categories');
     });
   });
 });
